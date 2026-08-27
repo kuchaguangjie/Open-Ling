@@ -86,27 +86,40 @@ React renderer
 
 ## 本地开发
 
-需要 Node.js 22、npm，以及当前操作系统用于编译 Node.js 原生模块的工具链。
+需要 **Node.js 24+**、**pnpm 11+**，以及当前操作系统用于编译 Node.js 原生模块的工具链（Linux 需要 `build-essential`、`python3`；Windows 需要 Visual Studio Build Tools；macOS 需要 Xcode Command Line Tools）。
 
 ```bash
 git clone https://github.com/Ling-Team/Open-Ling.git
 cd Open-Ling
-npm ci
-npm run app
+pnpm install --frozen-lockfile
+pnpm dev
+```
+
+`pnpm dev` 会依次完成：为 Electron 重新编译 `better-sqlite3` → 编译主进程 TypeScript → 并行启动 Vite 开发服务器（渲染端）和 Electron 主进程，等价于原 `pnpm app` / `pnpm dev:electron`。
+
+只启动前端 Web 预览、不打开 Electron 窗口时使用：
+
+```bash
+pnpm dev:web
 ```
 
 模型连接和 API Key 在 App 设置中配置，不需要把真实密钥写入源码或提交到 Git。
 
-常用验证命令：
+常用命令速查：
 
-```bash
-npm run typecheck
-npm test -- --run
-npm run build
-npm run public-boundary:verify
-```
+| 命令 | 说明 |
+|---|---|
+| `pnpm dev` | **启动桌面应用**（Electron + Vite，推荐日常开发） |
+| `pnpm dev:web` | 仅启动 Vite 渲染端 Web 预览（无 Electron） |
+| `pnpm typecheck` | 全量 TypeScript 类型检查（无 emit） |
+| `pnpm test -- --run` | 单轮执行 Vitest 测试套件 |
+| `pnpm build` | 本地化校验 → tsc → vite build → 主进程 tsc → 复制资源 → 产物校验 |
+| `pnpm rebuild:sqlite:electron` | 把 `better-sqlite3` 切到 Electron ABI（启动/打包前自动执行） |
+| `pnpm rebuild:sqlite:node` | 把 `better-sqlite3` 切到 Node ABI（`pnpm test` 前自动执行） |
+| `pnpm counselor:create -- ./pkg id` | 新建一个声明式咨询师扩展包 |
+| `pnpm public-boundary:verify` | 校验公开发布版本的对外边界 |
 
-`better-sqlite3` 在 Node/Vitest 与 Electron 下使用不同的原生 ABI；项目脚本会在测试、开发启动和打包前切换到对应版本。
+`better-sqlite3` 在 Node/Vitest 与 Electron 下使用不同的原生 ABI；`pnpm dev`、`pnpm test` 和 `pnpm build` 都会在进入对应阶段前自动切换到正确版本，一般无需手动执行 `rebuild:sqlite:*`。
 
 ## 咨询师扩展
 
@@ -115,7 +128,7 @@ Ling 咨询师包是声明式扩展，只包含 `manifest.json`、Prompt 和图�
 扩展包可以定义咨询师身份与关系定位、理论取向、实时会谈策略、中英文界面内容和视觉资源。共享咨询价值、伦理与实时安全基线、上下文预算、模型 Prompt 编译、记忆注入和会谈后任务由 Ling 统一管理。新会谈使用已安装的新版本，旧会谈继续使用创建时冻结的快照。
 
 ```bash
-npm run counselor:create -- ./my-counselor my-counselor
+pnpm counselor:create -- ./my-counselor my-counselor
 ```
 
 详见[专业咨询师扩展开发规范](./docs/professional-counselor-extension-spec.md)和[咨询师包技术说明](./docs/counselor-packages.md)。

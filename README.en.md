@@ -86,27 +86,40 @@ Installers are available from the [official website](https://ling.xiaoqunpsy.cn/
 
 ## Local development
 
-You need Node.js 22, npm, and the native build toolchain for Node.js modules on your operating system.
+You need **Node.js 24+**, **pnpm 11+**, and the native build toolchain for Node.js modules on your operating system (`build-essential` + `python3` on Linux, Visual Studio Build Tools on Windows, Xcode Command Line Tools on macOS).
 
 ```bash
 git clone https://github.com/Ling-Team/Open-Ling.git
 cd Open-Ling
-npm ci
-npm run app
+pnpm install --frozen-lockfile
+pnpm dev
+```
+
+`pnpm dev` runs, in order: Electron-ABI rebuild of `better-sqlite3` → main-process TypeScript → both the Vite renderer dev server and the Electron main process together. It is equivalent to the former `pnpm app` / `pnpm dev:electron`.
+
+To start only the renderer preview without opening an Electron window, use:
+
+```bash
+pnpm dev:web
 ```
 
 Configure model connections and API keys inside the app. Never place real credentials in source files or Git commits.
 
-Common verification commands:
+Quick command reference:
 
-```bash
-npm run typecheck
-npm test -- --run
-npm run build
-npm run public-boundary:verify
-```
+| Command | Description |
+|---|---|
+| `pnpm dev` | **Launch the desktop app** (Electron + Vite, default day-to-day) |
+| `pnpm dev:web` | Start only the Vite renderer (no Electron window) |
+| `pnpm typecheck` | Full TypeScript type check (no emit) |
+| `pnpm test -- --run` | Run the Vitest suite once |
+| `pnpm build` | Locale check → tsc → vite build → main-tsc → copy assets → verify artifact |
+| `pnpm rebuild:sqlite:electron` | Rebuild `better-sqlite3` for Electron ABI (auto-run before dev/package) |
+| `pnpm rebuild:sqlite:node` | Rebuild `better-sqlite3` for Node ABI (auto-run before `pnpm test`) |
+| `pnpm counselor:create -- ./pkg id` | Scaffold a declarative counselor extension package |
+| `pnpm public-boundary:verify` | Validate the public-release boundary |
 
-`better-sqlite3` uses different native ABIs under Node/Vitest and Electron. Project scripts switch to the required build before tests, development startup, and packaging.
+`better-sqlite3` uses different native ABIs under Node/Vitest and Electron. `pnpm dev`, `pnpm test`, and `pnpm build` all switch to the matching build automatically, so you normally don't need to invoke `rebuild:sqlite:*` manually.
 
 ## Counselor extensions
 
@@ -115,7 +128,7 @@ A Ling counselor package is a declarative extension containing only `manifest.js
 Packages can define a counselor's identity and relationship stance, theoretical approach, live-session strategy, localized interface copy, and visual assets. Ling owns shared counseling values, ethics and live safety policy, context budgets, model-aware prompt compilation, memory injection, and post-session tasks. New sessions use an installed update; existing sessions retain the snapshot created with them.
 
 ```bash
-npm run counselor:create -- ./my-counselor my-counselor
+pnpm counselor:create -- ./my-counselor my-counselor
 ```
 
 See the [professional counselor extension specification](./docs/professional-counselor-extension-spec.md) and [technical package format](./docs/counselor-packages.md).
