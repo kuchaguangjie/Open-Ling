@@ -1,0 +1,89 @@
+.privacy-notice-backdrop {
+  align-items: center;
+  background: rgba(31, 25, 20, 0.58);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: clamp(16px, 4vw, 48px);
+  position: fixed;
+  z-index: 10000;
+}
+
+.privacy-notice-dialog {
+  background: #fbf6e9;
+  border: 1px solid rgba(111, 88, 58, 0.38);
+  border-radius: 16px;
+  box-shadow: 0 28px 80px rgba(24, 18, 12, 0.34);
+  color: #44382d;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  max-height: min(86vh, 900px);
+  max-width: 860px;
+  overflow: hidden;
+  width: min(100%, 860px);
+}
+
+.privacy-notice-dialog > header {
+  align-items: center;
+  border-bottom: 1px solid rgba(111, 88, 58, 0.2);
+  display: flex;
+  justify-content: space-between;
+  padding: 18px 22px;
+}
+
+.privacy-notice-dialog h2,
+.privacy-notice-dialog h3 { color: #3d493e; }
+.privacy-notice-dialog h2 { font-size: 24px; margin: 0; }
+.privacy-notice-dialog h3 { font-size: 18px; margin: 28px 0 10px; }
+
+.privacy-notice-dialog > header button {
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: #68594b;
+  cursor: pointer;
+  font-size: 28px;
+  line-height: 1;
+  padding: 4px 9px;
+}
+
+.privacy-notice-copy {
+  font-size: 15px;
+  line-height: 1.78;
+  overflow: auto;
+  padding: 18px 28px 30px;
+}
+
+.privacy-notice-copy p { margin: 0 0 12px; }
+.privacy-notice-copy ul { margin: 8px 0 16px; padding-left: 24px; }
+.privacy-notice-copy li + li { margin-top: 6px; }
+.privacy-notice-metadata { color: #75634f; font-size: 13px; }
+
+.privacy-notice-dialog > footer {
+  border-top: 1px solid rgba(111, 88, 58, 0.2);
+  display: flex;
+  justify-content: flex-end;
+  padding: 14px 22px;
+}
+
+.privacy-notice-dialog > footer button {
+  background: #405748;
+  border: 0;
+  border-radius: 999px;
+  color: #fffaf0;
+  cursor: pointer;
+  font: inherit;
+  min-width: 112px;
+  padding: 9px 20px;
+}
+
+.privacy-notice-dialog button:focus-visible {
+  outline: 2px solid #8d2337;
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .privacy-notice-backdrop { padding: 8px; }
+  .privacy-notice-dialog { border-radius: 10px; max-height: 94vh; }
+  .privacy-notice-copy { padding: 14px 18px 24px; }
+}

@@ -1,0 +1,33 @@
+name: Bump application version
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bump-application-version-main
+  cancel-in-progress: false
+
+jobs:
+  bump-patch-version:
+    # The commit made below triggers this workflow once more; do not bump recursively.
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm version patch --no-git-tag-version
+      - name: Commit updated version
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "chore: bump version"
+          git push origin HEAD:main

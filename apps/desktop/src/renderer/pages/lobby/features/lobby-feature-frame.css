@@ -1,0 +1,161 @@
+.lobby-overlay-kicker { color: #788b79; font-size: 13px; letter-spacing: 0; margin: 0 0 10px; }
+.lobby-overlay-backdrop { align-items: center; animation: lobby-overlay-backdrop-enter var(--motion-duration-surface) var(--motion-ease-emphasized) both; background: rgba(42, 29, 17, 0.52); display: grid; inset: 0; justify-items: center; padding: 5.5%; position: absolute; z-index: 20; }
+.lobby-overlay-panel { animation: lobby-overlay-panel-enter var(--motion-duration-surface) var(--motion-ease-emphasized) both; background: linear-gradient(100deg, rgba(255, 255, 255, 0.07), transparent 30%, rgba(0, 0, 0, 0.1)), #61432d; border: 1px solid rgba(226, 184, 112, 0.72); border-radius: 7px; box-shadow: 0 28px 80px rgba(31, 21, 13, 0.44), inset 0 0 0 3px rgba(255, 235, 190, 0.08); contain: layout; max-height: 100%; max-width: 920px; overflow: hidden; padding: 10px; position: relative; transform-origin: center center; width: min(90%, 920px); }
+.lobby-overlay-frame-detail { border: 1px solid rgba(255, 231, 177, 0.35); inset: 5px; pointer-events: none; position: absolute; z-index: 2; }
+.lobby-overlay-paper { background: radial-gradient(circle at 14% 19%, rgba(151, 102, 46, 0.055) 0 1px, transparent 1.5px), radial-gradient(circle at 79% 71%, rgba(151, 102, 46, 0.04) 0 1px, transparent 1.5px), linear-gradient(116deg, rgba(255, 255, 255, 0.48), transparent 38%, rgba(129, 82, 33, 0.055)), #f2dfb4; background-size: 21px 21px, 27px 27px, auto, auto; border: 1px solid rgba(83, 51, 27, 0.72); box-shadow: inset 0 0 0 1px rgba(255, 249, 222, 0.9), inset 0 0 32px rgba(114, 73, 32, 0.08); box-sizing: border-box; max-height: calc(100vh - 250px); min-height: 350px; overflow: auto; padding: 42px 48px 38px; }
+.lobby-overlay-panel h2 { color: #4b3625; font-family: var(--font-letter); font-size: 28px; font-weight: 500; margin: 0 0 22px; }
+.lobby-overlay-close { align-items: center; background: #68492f; border: 1px solid #d0a45e; border-radius: 50%; box-shadow: 0 5px 13px rgba(49, 30, 16, 0.24), inset 0 0 0 2px rgba(255, 238, 197, 0.08); color: #f8e6bb; display: inline-flex; font-size: 21px; height: 34px; justify-content: center; line-height: 1; position: absolute; right: 18px; top: 17px; transition: background-color var(--motion-duration-fast) var(--motion-ease-standard), color var(--motion-duration-fast) var(--motion-ease-standard), transform var(--motion-duration-fast) var(--motion-ease-standard); width: 34px; z-index: 4; }
+.lobby-overlay-close:hover, .lobby-overlay-close:focus-visible { background: #7c5a3d; color: #fff3d2; transform: rotate(5deg); }
+.lobby-overlay-close:active { transform: rotate(5deg) scale(0.94); }
+@media (max-height: 760px) { .lobby-overlay-backdrop { padding: 0.8%; } .lobby-overlay-panel { max-height: 99%; } .lobby-overlay-paper { max-height: calc(100vh - 155px); min-height: 0; padding: 26px 34px 20px; } }
+@keyframes lobby-overlay-panel-enter {
+  from { opacity: 0; transform: translate3d(0, var(--motion-distance-surface), 0) scale(var(--motion-scale-surface)); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes lobby-overlay-backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lobby-overlay-backdrop,
+  .lobby-overlay-panel { animation: none; will-change: auto; }
+}
+
+/* Shared material system for the three paper workspaces in the waiting room. */
+.lobby-overlay-backdrop.lobby-overlay-backdrop-studio {
+  box-sizing: border-box;
+  padding: clamp(8px, 1vw, 14px);
+}
+
+.lobby-overlay-panel.lobby-overlay-studio-surface {
+  --studio-frame-reveal: clamp(26px, 2.35vw, 36px);
+  --studio-frame-corner: calc(var(--studio-frame-reveal) * 2.8);
+  --studio-paper-radius: clamp(17px, calc(var(--studio-frame-reveal) * 0.6), 22px);
+  background: none;
+  border: 0;
+  border-radius: 48px;
+  box-shadow: none;
+  box-sizing: border-box;
+  contain: layout paint;
+  height: min(92vh, 828px);
+  max-height: calc(100vh - 24px);
+  max-width: 1404px;
+  min-width: 0;
+  overflow: hidden;
+  padding: var(--studio-frame-reveal);
+  width: min(96%, 1404px);
+}
+
+/* Feature styles historically gave these panels different wooden shells. Keep
+   the shared material authoritative so letters, resources and stories expose
+   exactly the same frame width and proportions. */
+.lobby-overlay-panel.lobby-overlay-studio-surface.lobby-overlay-letters,
+.lobby-overlay-panel.lobby-overlay-studio-surface.lobby-overlay-resources,
+.lobby-overlay-panel.lobby-overlay-studio-surface.lobby-overlay-bookcase {
+  background: none;
+  border: 0;
+  border-radius: 48px;
+  box-shadow: none;
+  box-sizing: border-box;
+  height: 100%;
+  max-height: none;
+  max-width: none;
+  overflow: hidden;
+  padding: var(--studio-frame-reveal);
+  width: 100%;
+}
+
+.lobby-overlay-panel.lobby-overlay-studio-surface .lobby-overlay-frame-detail { display: none; }
+
+.lobby-studio-frame-skin {
+  display: grid;
+  grid-template-columns: var(--studio-frame-corner) minmax(0, 1fr) var(--studio-frame-corner);
+  grid-template-rows: var(--studio-frame-corner) minmax(0, 1fr) var(--studio-frame-corner);
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+
+.lobby-studio-frame-slice {
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+}
+
+.lobby-studio-frame-slice.is-top-left { background-image: url("../../../../../../../assets/runtime/lobby/resource-table/frame/dialogue-slices-v24/resource-table-frame-top-left.png"); grid-column: 1; grid-row: 1; }
+.lobby-studio-frame-slice.is-top { background-image: url("../../../../../../../assets/runtime/lobby/resource-table/frame/dialogue-slices-v24/resource-table-frame-top.png"); grid-column: 2; grid-row: 1; }
+.lobby-studio-frame-slice.is-top-right { background-image: url("../../../../../../../assets/runtime/lobby/resource-table/frame/dialogue-slices-v24/resource-table-frame-top-right.png"); grid-column: 3; grid-row: 1; }
+.lobby-studio-frame-slice.is-left { background-image: url("../../../../../../../assets/runtime/lobby/resource-table/frame/dialogue-slices-v24/resource-table-frame-left.png"); grid-column: 1; grid-row: 2; }
+.lobby-studio-frame-slice.is-right { background-image: url("../../../../../../../assets/runtime/lobby/resource-table/frame/dialogue-slices-v24/resource-table-frame-right.png"); grid-column: 3; grid-row: 2; }
+.lobby-studio-frame-slice.is-bottom-left { background-image: url("../../../../../../../assets/runtime/lobby/resource-table/frame/dialogue-slices-v24/resource-table-frame-bottom-left.png"); grid-column: 1; grid-row: 3; }
+.lobby-studio-frame-slice.is-bottom { background-image: url("../../../../../../../assets/runtime/lobby/resource-table/frame/dialogue-slices-v24/resource-table-frame-bottom.png"); grid-column: 2; grid-row: 3; }
+.lobby-studio-frame-slice.is-bottom-right { background-image: url("../../../../../../../assets/runtime/lobby/resource-table/frame/dialogue-slices-v24/resource-table-frame-bottom-right.png"); grid-column: 3; grid-row: 3; }
+
+.lobby-studio-frame-slice.is-top,
+.lobby-studio-frame-slice.is-bottom {
+  position: relative;
+  transform: translateX(-2px);
+  width: calc(100% + 4px);
+}
+
+.lobby-studio-frame-slice.is-left,
+.lobby-studio-frame-slice.is-right {
+  height: calc(100% + 4px);
+  position: relative;
+  transform: translateY(-2px);
+}
+
+.lobby-overlay-panel.lobby-overlay-studio-surface .lobby-overlay-paper {
+  /* The frame, paper and inset rule are separate layers. The reveal variable
+     controls the visible wood thickness without resampling the paper. */
+  background: #f7ecd6 url("../../../../../../../assets/runtime/lobby/resource-table/frame/resource-table-paper-blank-v20.png") center / cover no-repeat;
+  border: 1px solid rgba(99, 65, 35, 0.38);
+  border-radius: var(--studio-paper-radius);
+  box-shadow: 0 3px 8px rgba(54, 34, 19, 0.18), inset 0 0 0 1px rgba(255, 253, 244, 0.78);
+  height: 100%;
+  max-height: none;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.lobby-overlay-panel.lobby-overlay-studio-surface .lobby-overlay-close {
+  align-items: center;
+  background: #fff8e7;
+  border: 1px solid rgba(150, 110, 59, 0.55);
+  border-radius: 50%;
+  box-shadow: 0 6px 14px rgba(65, 43, 22, 0.18);
+  color: #67492f;
+  display: flex;
+  font-family: Arial, sans-serif;
+  font-size: 31px;
+  height: 52px;
+  justify-content: center;
+  line-height: 1;
+  padding: 0 0 4px;
+  right: 34px;
+  top: 26px;
+  width: 52px;
+  z-index: 6;
+}
+
+.lobby-overlay-panel.lobby-overlay-studio-surface .lobby-overlay-close:hover,
+.lobby-overlay-panel.lobby-overlay-studio-surface .lobby-overlay-close:focus-visible {
+  background: #fffdf5;
+  color: #4d3422;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 1040px), (max-height: 760px) {
+  .lobby-overlay-panel.lobby-overlay-studio-surface { height: min(94vh, 828px); width: 98%; }
+  .lobby-overlay-panel.lobby-overlay-studio-surface .lobby-overlay-close { height: 46px; right: 31px; top: 25px; width: 46px; }
+}
+
+@media (max-width: 760px) {
+  .lobby-overlay-panel.lobby-overlay-studio-surface { border-radius: 48px; height: min(96vh, 828px); width: 98%; }
+  .lobby-overlay-panel.lobby-overlay-studio-surface .lobby-overlay-paper { overflow-y: auto; }
+  .lobby-overlay-panel.lobby-overlay-studio-surface .lobby-overlay-close { height: 40px; right: 25px; top: 25px; width: 40px; }
+}

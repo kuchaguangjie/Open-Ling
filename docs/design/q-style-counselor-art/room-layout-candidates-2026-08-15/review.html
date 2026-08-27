@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>林乐水｜晴日湖畔室 v4 实际效果</title>
+  <style>
+    :root { color-scheme: light; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #17211e; color: #f7f3e9; display: grid; grid-template-rows: auto 1fr; }
+    .toolbar { display: flex; align-items: center; gap: 10px; padding: 12px 18px; background: rgba(20, 31, 27, .96); border-bottom: 1px solid rgba(255,255,255,.12); }
+    .toolbar strong { margin-right: auto; font-size: 15px; }
+    button { border: 1px solid rgba(255,255,255,.2); border-radius: 999px; padding: 8px 14px; color: #ebeade; background: rgba(255,255,255,.08); cursor: pointer; }
+    button.active { color: #20342a; background: #dce9db; border-color: #dce9db; }
+    .viewport { min-height: 0; display: grid; place-items: center; padding: 14px; overflow: hidden; }
+    .stage { position: relative; width: min(100%, calc((100vh - 84px) * 1672 / 941)); aspect-ratio: 1672 / 941; overflow: hidden; border-radius: 12px; box-shadow: 0 22px 60px rgba(0,0,0,.36); background: url('./linleshui-sunny-lakeside-visitor-chair-angle45-source-v4.png') center / cover no-repeat; }
+    .portrait { position: absolute; z-index: 3; right: .6%; bottom: 0; height: 94.5%; width: auto; object-fit: contain; object-position: right bottom; filter: drop-shadow(0 10px 15px rgba(61,43,27,.12)); }
+    .sidebar, .conversation, .topbar, .bubble, .composer { transition: opacity .18s ease; }
+    .sidebar { position: absolute; z-index: 4; left: 1.2%; top: 2.3%; bottom: 2.3%; width: 13%; border: 1px solid rgba(255,255,255,.55); border-radius: 18px; background: rgba(251,246,237,.76); backdrop-filter: blur(9px); padding: 24px 18px; color: #4d5d52; }
+    .brand { font-family: Georgia, serif; font-size: 29px; color: #4b6958; margin-bottom: 8px; }
+    .name { font-size: 18px; color: #635b50; margin-bottom: 36px; }
+    .nav { padding: 11px 14px; margin: 8px 0; border-radius: 12px; font-size: 15px; }
+    .nav.active { background: rgba(85,123,96,.15); color: #3e614e; }
+    .conversation { position: absolute; z-index: 2; left: 15.6%; top: 3.5%; bottom: 3.5%; width: 51.4%; border: 1px solid rgba(255,255,255,.56); border-radius: 20px; background: rgba(255,255,255,.17); backdrop-filter: blur(3px); }
+    .topbar { height: 70px; margin: 18px 22px; border-radius: 14px; display: grid; place-items: center; color: #4d6657; font-size: 21px; background: rgba(250,243,231,.72); }
+    .bubble { position: absolute; max-width: 65%; padding: 16px 20px; border-radius: 18px; color: #4a443e; background: rgba(255,250,242,.82); box-shadow: 0 7px 20px rgba(81,60,36,.08); line-height: 1.65; font-size: 16px; }
+    .b1 { left: 6%; top: 22%; }
+    .b2 { right: 6%; top: 42%; background: rgba(236,246,239,.82); }
+    .b3 { left: 6%; top: 61%; }
+    .who { display: block; margin-bottom: 5px; color: #53765e; font-size: 13px; }
+    .composer { position: absolute; left: 4%; right: 4%; bottom: 5%; height: 72px; border: 1px solid rgba(255,255,255,.55); border-radius: 18px; background: rgba(255,252,247,.85); color: #8f877d; display: flex; align-items: center; padding: 0 24px; }
+    .send { margin-left: auto; width: 46px; height: 46px; display: grid; place-items: center; border-radius: 50%; background: #6c8d79; color: white; font-size: 24px; }
+    .stage.scene .sidebar, .stage.scene .conversation { opacity: 0; pointer-events: none; }
+    .stage.background .sidebar, .stage.background .conversation, .stage.background .portrait { opacity: 0; pointer-events: none; }
+    .caption { position: absolute; right: 18px; top: 18px; z-index: 6; padding: 8px 12px; border-radius: 10px; color: #4e6256; background: rgba(255,255,255,.74); font-size: 13px; backdrop-filter: blur(6px); }
+    @media (max-width: 800px) { .toolbar { flex-wrap: wrap; } .toolbar strong { width: 100%; } .viewport { padding: 8px; } }
+  </style>
+</head>
+<body>
+  <header class="toolbar">
+    <strong>林乐水｜晴日湖畔室 v4（已选）</strong>
+    <button class="active" data-mode="app">完整咨询界面</button>
+    <button data-mode="scene">场景＋人物</button>
+    <button data-mode="background">纯背景</button>
+  </header>
+  <main class="viewport">
+    <section class="stage" id="stage">
+      <div class="caption" id="caption">完整咨询界面</div>
+      <img class="portrait" src="../../../../assets/runtime/q-style-counselor-art-v1/main-portraits/linleshui-main-selected-pose-transparent-v1.png" alt="林乐水咨询立绘">
+      <aside class="sidebar">
+        <div class="brand">Ling</div>
+        <div class="name">林乐水</div>
+        <div class="nav active">咨询中</div>
+        <div class="nav">会谈记录</div>
+        <div class="nav">咨询设置</div>
+      </aside>
+      <section class="conversation">
+        <div class="topbar">与林乐水的会谈</div>
+        <div class="bubble b1"><span class="who">林乐水</span>我们先不急着得到答案。</div>
+        <div class="bubble b2"><span class="who">我</span>最近有一件事，我一直想不明白。</div>
+        <div class="bubble b3"><span class="who">林乐水</span>可以慢慢说，我们一起看看你真正珍视的是什么。</div>
+        <div class="composer">写下此刻想说的话……<span class="send">↑</span></div>
+      </section>
+    </section>
+  </main>
+  <script>
+    const stage = document.querySelector('#stage');
+    const caption = document.querySelector('#caption');
+    const labels = { app: '完整咨询界面', scene: '场景＋人物', background: '纯背景' };
+    document.querySelector('.toolbar').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-mode]');
+      if (!button) return;
+      document.querySelectorAll('[data-mode]').forEach((item) => item.classList.toggle('active', item === button));
+      stage.className = `stage ${button.dataset.mode === 'app' ? '' : button.dataset.mode}`;
+      caption.textContent = labels[button.dataset.mode];
+    });
+  </script>
+</body>
+</html>

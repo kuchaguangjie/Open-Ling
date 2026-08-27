@@ -1,0 +1,268 @@
+export interface UserGuidePoint {
+  label?: string;
+  text: string;
+}
+
+export interface UserGuideComparison {
+  action: string;
+  description: string;
+  marker: string;
+}
+
+export interface UserGuideTopic {
+  id: string;
+  title: string;
+  navigationLabel: string;
+  lead: string;
+  points?: UserGuidePoint[];
+  steps?: string[];
+  comparison?: UserGuideComparison[];
+  note?: string;
+}
+
+export interface UserGuideGroup {
+  id: string;
+  label: string;
+  topics: UserGuideTopic[];
+}
+
+const zhUserGuideGroups: UserGuideGroup[] = [
+  {
+    id: "start",
+    label: "开始咨询",
+    topics: [
+      {
+        id: "meet-ling",
+        navigationLabel: "认识 Ling 和群心心理工作室",
+        title: "认识 Ling 和群心心理工作室",
+        lead: "Ling 是一款采用 Apache-2.0 开源许可的 AI 心理咨询 App。群心心理工作室是 App 内的 AI 咨询师团队设定。首次进入时可以先阅读欢迎与隐私说明，再进入工作室看看；解锁密码、恢复码和模型连接会在第一次开始咨询前完成。",
+        points: [
+          { label: "三位咨询角色", text: "程灵、周舟和林乐水都由人工智能大语言模型驱动，不是三位正在电脑另一端工作的真人咨询师。" },
+          { label: "专门设计", text: "Ling 不只是给通用模型换了名字；它围绕心理咨询场景设计了咨询师设定、会谈方式、安全边界、上下文与记忆处理，以及会谈后的整理流程。" },
+          { label: "开发与测试", text: "核心咨询系统的研发参考心理咨询伦理、相关理论与公开研究，并通过情境测试检查回应边界。相关设计和内部测试不构成执业资质、临床验证或效果保证。" },
+          { label: "使用边界", text: "这里的“AI 心理咨询”指 AI 提供的支持性对话与自我探索，不能替代真人心理咨询、心理治疗、精神科诊疗、医学诊断或危机干预。" },
+          { label: "进入等待室", text: "第一次进入时，由程灵在前台做简短接待；之后由三位咨询师按日期轮流值班。场景中的柔光圆点可以打开不同区域；底栏可以直接查看咨询师的信、预约咨询或打开系统设置。" }
+        ],
+        note: "你不需要认同 AI 的每一句话，也不需要为了继续使用而说出不愿意说的内容。项目说明与咨询师扩展规范将在公开仓库开放后提供；产品、隐私、安全或知情同意相关问题，可以联系 openling@xiaoqunpsy.cn。"
+      },
+      {
+        id: "choose-counselor",
+        navigationLabel: "认识和选择咨询师",
+        title: "认识和选择咨询师",
+        lead: "点击等待室墙上的三张咨询师照片，可以打开介绍册，了解三位 AI 咨询角色的取向、工作方式和常关注的议题。",
+        points: [
+          { label: "程灵｜人本—心理动力", text: "关注感受、关系经验、内在需要与冲突，重视在被理解的过程中慢慢探索。" },
+          { label: "周舟｜焦点解决取向", text: "关注你期待发生的改变、已经有效的部分和可用资源，与你一起寻找具体、适度、可行的下一步。" },
+          { label: "林乐水｜中国传统心性哲学取向", text: "关注身心、现实处境与价值方向，也会借助中国传统心性哲学理解关系、责任、得失与人生变化。" }
+        ],
+        note: "三位角色背后仍是人工智能模型。你不必寻找“最正确”的选择，先选择此刻更愿意与之交谈的人就可以了。"
+      },
+      {
+        id: "start-session",
+        navigationLabel: "开始一场新咨询",
+        title: "开始一场新咨询",
+        lead: "选好咨询师后，点击“预约咨询”。第一次开始前，Ling 会先请你设置解锁密码并保存恢复码；如果模型尚未连接，也会引导你配置服务，随后显示完整的 AI 心理咨询知情同意书。全部由你确认后，Ling 才会建立本地会谈并进入咨询室。",
+        points: [
+          { label: "进入前", text: "咨询师会先做开场接待；你可以逐句阅读，也可以跳过开场直接进入。" },
+          { label: "左侧", text: "查看当前与历史会谈，也可以搜索、切换、重命名或删除。" },
+          { label: "中间", text: "阅读对话、输入想说的话，并查看消息与附件状态。" },
+          { label: "右侧", text: "查看咨询师信息和当前回应状态。" }
+        ],
+        note: "每场会谈都会保留创建时选择的咨询师和模型。若同一咨询师已有未结束的会谈，选择“开始新咨询”会先结束旧会谈并建立新会谈；已结束的历史会谈不会被改动。"
+      }
+    ]
+  },
+  {
+    id: "during",
+    label: "咨询过程中",
+    topics: [
+      {
+        id: "during-session",
+        navigationLabel: "表达、发送与重试",
+        title: "表达、发送与重试",
+        lead: "不需要提前组织好完整的故事，可以从此刻最想说的一点开始。",
+        points: [
+          { label: "发送", text: "点击“发送”或按 Enter。" },
+          { label: "换行", text: "使用 Shift + Enter 或 Alt/Option + Enter。" },
+          { label: "重试", text: "消息失败时，点击消息旁的“重试”。" },
+          { label: "添加资料", text: "可以把文件随消息保存。TXT 和 Markdown 文本会被读入模型上下文；选用支持视觉的模型时，PNG、JPEG、GIF 和 WebP 图片也会随当前消息发送给模型识别。PDF 和 Word 目前只记录文件信息。" },
+          { label: "换方向", text: "可以直接说“不想谈这个”或“我想先停一下”。" }
+        ]
+      },
+      {
+        id: "voice-input",
+        navigationLabel: "使用语音输入",
+        title: "使用语音输入",
+        lead: "在咨询室输入框左侧点击麦克风，可以把说话内容转成可编辑文字。识别结果只会写入输入框，不会自动发送；你可以先检查和修改，再决定是否发给咨询师。",
+        points: [
+          { label: "本地识别", text: "默认使用安装包内置的离线中英文模型。第一次启用时需要确认并等待几秒完成准备，录音不会上传。" },
+          { label: "云端识别", text: "可在“设置 → 语音输入”选择火山引擎、腾讯云或阿里云百炼。开始使用前会再次提示音频发送与可能计费。" },
+          { label: "开始与停止", text: "点击麦克风开始听写，再点一次停止；按发送时，Ling 会先结束听写并保留最终识别文字。" },
+          { label: "快捷键", text: "可以设置仅在 Ling 窗口位于前台时生效的组合键，按一次开始，再按一次停止。" }
+        ],
+        note: "Ling 需要系统麦克风权限。请在发送前确认识别文字准确；如果不想保留，可以像普通草稿一样修改或删除。"
+      },
+      {
+        id: "pause-or-end",
+        navigationLabel: "停止、离开与结束",
+        title: "停止、离开与结束",
+        lead: "这三个操作看起来相近，但代表不同的会谈状态。",
+        comparison: [
+          { marker: "Ⅱ", action: "停止", description: "只停止当前正在生成的回应，会谈仍可继续。" },
+          { marker: "↪", action: "返回等待室", description: "暂时离开咨询室，不会结束这场会谈。" },
+          { marker: "×", action: "结束本次咨询", description: "确认后会谈转为只读，Ling 会开始整理这次咨询并准备咨询师来信。" }
+        ],
+        note: "结束后仍可选择“继续咨询”。继续后，这场会谈会重新开放输入，Ling 不会采用此前尚未完成的整理和来信。"
+      }
+    ]
+  },
+  {
+    id: "after",
+    label: "咨询结束后",
+    topics: [
+      {
+        id: "next-session-preparation",
+        navigationLabel: "结束咨询之后",
+        title: "结束咨询之后",
+        lead: "结束后，Ling 会在后台整理这次咨询，并准备咨询师来信。相关步骤由你配置的 AI 模型完成，没有真人咨询师或真人督导师在后台查看、值守或即时接管。",
+        steps: ["会谈转为只读，并开始后台整理", "AI 生成单次与长期整理、独立检查和咨询备忘录", "已完成的咨询备忘录可按设置承接到同一咨询师之后的新会谈", "来信写好后保存到等待室底栏的「咨询师的信」"],
+        note: "如果继续这场会谈，Ling 不会采用此前尚未完成的整理和来信；再次结束时，会按更新后的完整会谈重新整理。"
+      },
+      {
+        id: "manage-sessions",
+        navigationLabel: "继续和管理会谈",
+        title: "继续和管理会谈",
+        lead: "咨询室左侧会显示当前咨询师的进行中会谈和历史会谈；等待室沙发旁的「会谈记录」可以集中回看已经结束的对话。",
+        points: [
+          { label: "切换", text: "点击会谈名称。" },
+          { label: "新建", text: "点击顶部“+”；同一位咨询师已有未结束的会谈时，可以选择继续旧会谈，或让旧会谈进入结束流程并开始新会谈。" },
+          { label: "查找", text: "历史会谈出现后，可以使用其上方的搜索框。" },
+          { label: "整理", text: "打开会谈旁的操作菜单，可以重命名；符合删除条件时也可以删除。" }
+        ],
+        note: "第一次发送后，会谈名称可能自动变成一个简短主题。"
+      },
+      {
+        id: "past-understanding",
+        navigationLabel: "承接过去理解",
+        title: "让同一咨询师的新会谈承接过去理解",
+        lead: "同一位咨询师的新会谈可以按你的设置承接上一阶段已经完成并冻结的咨询备忘录，帮助衔接线索。它只供后台承接使用，不会作为可阅读的咨询总结展示，也不会跨咨询师共享。",
+        steps: ["打开“设置 → 咨询连续性”", "找到“新会谈承接同一咨询师的后台整理”", "按需要开启或关闭并保存"],
+        note: "后台整理材料不是对你的事实定论，也不会跨咨询师共享。你当下的表达始终优先；开关只影响之后新建的会谈。"
+      },
+      {
+        id: "session-letter",
+        navigationLabel: "查看咨询师的信",
+        title: "查看咨询师的信",
+        lead: "正式结束一场咨询后，Ling 会调用你配置的模型服务生成咨询师来信。你可以留在会谈中等待，也可以返回等待室，从底栏打开「咨询师的信」。",
+        points: [
+          { label: "筛选", text: "按咨询师查看来信。" },
+          { label: "搜索", text: "按来信、会谈或咨询师查找。" },
+          { label: "阅读", text: "先看预览，再打开完整信件。" },
+          { label: "恢复", text: "来信生成失败时，可以在预览区选择“重新生成”。" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "fees",
+    label: "费用与用量",
+    topics: [
+      {
+        id: "fees-and-usage",
+        navigationLabel: "了解费用与用量",
+        title: "了解费用与用量",
+        lead: "Ling 官方发行方不收取软件下载费、咨询费、订阅费或使用费。使用中可能产生的费用，只来自你接入的模型服务商。",
+        points: [
+          { label: "Ling 本身", text: "官方发行方不收取软件下载费或使用费。" },
+          { label: "费用来自哪里", text: "生成回复、整理会谈材料和来信需要调用模型服务。接入 DeepSeek、Kimi、GLM、Qwen 等云端服务时，由对应服务商按其定价计费，额度、优惠、限速和账户规则也以该服务商为准。" },
+          { label: "本机模型", text: "接入本机模型时，内容不离开这台设备，也不会产生模型服务商的调用费用。" },
+          { label: "查看用量", text: "在“设置 → 用量与费用”中可以查看今天和最近 7 天的 Token 消耗，并按服务商和模型分组。" },
+          { label: "费用怎么算", text: "Ling 只记录 Token 数量，不计算也不显示金额。具体费用按模型服务商官方单价计算，最终以服务商账户账单为准。" }
+        ],
+        note: "模型服务商的价格可能调整。开始使用某个服务前，可以在它的官网查看当前定价、免费额度和计费规则。"
+      }
+    ]
+  },
+  {
+    id: "more",
+    label: "大厅与设置",
+    topics: [
+      {
+        id: "explore-lobby",
+        navigationLabel: "看看等待室",
+        title: "看看等待室",
+        lead: "不开始咨询时，也可以在工作室里自由看看。",
+        points: [
+          { label: "前台", text: "与当前值班咨询师交谈，了解工作室或进入咨询选择。" },
+          { label: "咨询师照片", text: "打开三位咨询师的介绍册，了解她们并预约咨询。" },
+          { label: "书架", text: "阅读三位咨询师创作的虚构故事。" },
+          { label: "花园", text: "切换晴雨、自然声音，或跟随湖面光晕进行可以暂停和随时结束的呼吸练习。" },
+          { label: "相册", text: "查看三位咨询师的工作室合照。" },
+          { label: "沙发", text: "回看已经结束的会谈记录。" },
+          { label: "资料桌", text: "查看使用帮助、危机支持和完整知情说明。" },
+          { label: "底部快捷入口", text: "直接查看咨询师的信、预约咨询或打开系统设置。" }
+        ]
+      },
+      {
+        id: "data-and-models",
+        navigationLabel: "了解资料与模型边界",
+        title: "了解资料与模型边界",
+        lead: "Ling 默认把设置、个人资料、会谈、后台整理和来信保存在这台设备上，不提供自有云同步、遥测或默认外部上传。需要模型生成内容时，相关资料仍会发送到你配置的模型服务。",
+        points: [
+          { label: "会发送什么", text: "模型请求可能包含系统提示、你的消息、个人资料片段、受预算控制的近期对话与摘要、可读附件，以及已经完成的后台整理材料。" },
+          { label: "发送到哪里", text: "请求发送到“模型接入”中填写的 Base URL；服务商怎样保存、使用和删除请求内容，以及是否按其定价计费，由对应服务商的规则决定。" },
+          { label: "本机保存", text: "会谈、消息、设置、个人资料、附件记录、后台整理和来信默认保存在本机；API Key 由主进程通过操作系统安全存储加密保存，不进入本地数据库或备份。" },
+          { label: "解锁密码", text: "解锁密码会加密本地会谈、来信、记忆和设置；恢复码用于忘记密码、换设备和恢复加密备份。" },
+          { label: "语音输入", text: "内置本地识别离线运行，录音不上传；选择云端识别服务时，实时音频和鉴权信息会发送给对应服务商，并可能由你的服务商账号计费。" },
+          { label: "导出与备份", text: "Markdown 导出供阅读，不包含 API Key、附件原文件和后台整理；完整本地备份采用加密格式，用于迁移与恢复，包含本地资料但不包含 API Key。" }
+        ],
+        note: "请只连接你信任的模型服务，并把导出文件、备份和恢复码保存在只有你或你信任的人能够访问的位置。"
+      },
+      {
+        id: "settings",
+        navigationLabel: "调整常用设置",
+        title: "调整常用设置",
+        lead: "点击等待室底栏的「系统设置」，可以打开 Ling 的模型、语音输入、个人资料、语言、咨询连续性、数据与隐私等设置。",
+        points: [
+          { label: "个人资料与语言", text: "填写称呼和背景、更换头像，并在简体中文与 English 之间切换界面和专业内容语言。" },
+          { label: "模型接入", text: "配置 DeepSeek 或兼容 OpenAI 接口格式的模型服务，测试连接，并分别选择咨询对话与会谈后整理使用的模型。" },
+          { label: "用量与费用", text: "查看今天和最近 7 天的 Token 消耗；Ling 本身免费，费用以模型服务商定价为准。" },
+          { label: "语音输入", text: "使用安装包内置的本地中英文识别，或配置火山引擎、腾讯云、阿里云百炼；也可以设置仅在 Ling 前台生效的快捷键。" },
+          { label: "咨询连续性", text: "决定同一咨询师的新会谈是否承接过去理解。" },
+          { label: "数据与隐私", text: "设置本地解锁密码和免密窗口，导出会谈与来信，创建或恢复加密的完整本地备份，并按需恢复推荐设置。" },
+          { label: "界面与阅读", text: "调整会谈与资料阅读区域的文字大小和行距。" }
+        ]
+      },
+      {
+        id: "troubleshooting",
+        navigationLabel: "遇到问题",
+        title: "遇到问题",
+        lead: "先根据页面状态检查最常见的情况。",
+        points: [
+          { label: "不能发送", text: "先确认会谈仍在进行；若页面提示模型连接问题，到“设置 → 模型接入”测试连接。" },
+          { label: "找不到旧会谈", text: "从等待室重新选择原咨询师并进入咨询室，再查看左侧历史会谈；也可以使用“数据与隐私”导出记录核对。" },
+          { label: "后台整理失败", text: "点击“重新整理这次咨询”。" },
+          { label: "来信未出现", text: "若页面仍显示咨询师正在写信，请稍后等待或到等待室底栏的「咨询师的信」刷新；若提示生成失败，可以选择“重新生成”。" },
+          { label: "附件没有被理解", text: "TXT 和 Markdown 可直接读取；图片需要选用支持视觉的模型，例如 DeepSeek V4 Flash Vision 实验版。PDF 和 Word 目前只保存文件记录。" },
+          { label: "语音输入无法开始", text: "先检查系统麦克风权限；若使用云端识别，再到“设置 → 语音输入”核对服务商凭据和已开通资源。" },
+          { label: "忘记本地密码", text: "使用设置解锁密码时保存的恢复码重设密码；Ling 无法替你找回未保存的密码或恢复码。" },
+          { label: "恢复备份前", text: "恢复会替换这台设备上现有的 Ling 本地资料，并重启 App；API Key 不在备份中。若备份来自另一台设备，请准备创建备份时的恢复码。请先确认选中的文件和当前资料是否需要另行备份。" }
+        ],
+        note: "你可以停止当前回应、暂时返回等待室、结束咨询，或关闭 Ling；这些操作对会谈和未发送草稿的影响并不相同，详见“停止、离开与结束”。"
+      }
+    ]
+  }
+];
+
+export const defaultUserGuideTopicId = "meet-ling";
+
+export function getUserGuideGroups(locale: SupportedLocale) {
+  return locale === "en-US" ? englishUserGuideGroups : zhUserGuideGroups;
+}
+
+export function findUserGuideTopic(topicId: string, locale: SupportedLocale = "zh-CN") {
+  const groups = getUserGuideGroups(locale);
+  return groups.flatMap((group) => group.topics).find((topic) => topic.id === topicId) ?? groups[0].topics[0];
+}
+import type { SupportedLocale } from "@shared/index";
+import { englishUserGuideGroups } from "./userGuideContent.en-US";

@@ -1,0 +1,232 @@
+.portrait-cutout-qa-page {
+  height: 100dvh;
+  min-height: 720px;
+  overflow: hidden;
+  position: relative;
+}
+
+.portrait-cutout-qa-room {
+  box-sizing: border-box;
+  height: 100%;
+}
+
+.portrait-cutout-qa-conversation {
+  min-height: 0;
+}
+
+.portrait-cutout-qa-message-stream {
+  align-content: end;
+  display: grid;
+  gap: 22px;
+  min-height: 0;
+  overflow: hidden;
+  padding: 34px 38px 28px;
+}
+
+.portrait-cutout-qa-message {
+  backdrop-filter: blur(10px) saturate(0.9);
+  border: 1px solid rgba(93, 75, 55, 0.14);
+  border-radius: 14px;
+  box-shadow: 0 12px 30px rgba(71, 52, 32, 0.06);
+  color: #4a4035;
+  line-height: 1.75;
+  max-width: 78%;
+  padding: 18px 20px;
+}
+
+.portrait-cutout-qa-message strong {
+  color: var(--message-name-assistant);
+  display: block;
+  font-family: var(--font-title);
+  font-size: 15px;
+  margin-bottom: 7px;
+}
+
+.portrait-cutout-qa-message p {
+  margin: 0;
+}
+
+.portrait-cutout-qa-message.is-user {
+  background: rgba(247, 243, 233, 0.78);
+  justify-self: end;
+}
+
+.portrait-cutout-qa-message.is-user strong {
+  color: var(--message-name-user);
+}
+
+.portrait-cutout-qa-message.is-counselor {
+  background: rgba(238, 245, 244, 0.78);
+  justify-self: start;
+}
+
+.portrait-cutout-qa-composer {
+  align-items: center;
+  backdrop-filter: blur(12px) saturate(0.9);
+  background: rgba(255, 252, 245, 0.78);
+  border: 1px solid rgba(96, 80, 60, 0.16);
+  border-radius: 14px;
+  color: rgba(70, 60, 50, 0.56);
+  display: flex;
+  justify-content: space-between;
+  margin: 0 28px 24px;
+  min-height: 70px;
+  padding: 0 14px 0 22px;
+}
+
+.portrait-cutout-qa-composer button {
+  background: #5f8079;
+  border: 0;
+  border-radius: 10px;
+  color: #fffaf0;
+  font: inherit;
+  padding: 11px 22px;
+}
+
+.portrait-cutout-qa-controls {
+  align-items: center;
+  backdrop-filter: blur(18px) saturate(0.92);
+  background: rgba(255, 252, 245, 0.9);
+  border: 1px solid rgba(79, 65, 49, 0.18);
+  border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(59, 42, 26, 0.16);
+  display: flex;
+  gap: 14px;
+  left: 50%;
+  padding: 12px 14px 12px 18px;
+  position: absolute;
+  top: 16px;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  z-index: 20;
+}
+
+.portrait-cutout-qa-controls p,
+.portrait-cutout-qa-controls small {
+  display: block;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.portrait-cutout-qa-controls p {
+  color: #42362b;
+  font-family: var(--font-title);
+  font-size: 14px;
+}
+
+.portrait-cutout-qa-controls small {
+  color: rgba(66, 54, 43, 0.62);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.portrait-cutout-qa-switch {
+  display: flex;
+  gap: 4px;
+}
+
+.portrait-cutout-qa-state-switch button {
+  padding-inline: 10px;
+}
+
+.portrait-cutout-qa-controls button {
+  background: rgba(239, 234, 222, 0.78);
+  border: 1px solid rgba(80, 66, 50, 0.16);
+  border-radius: 9px;
+  color: #57483a;
+  cursor: pointer;
+  font: inherit;
+  padding: 9px 12px;
+  white-space: nowrap;
+}
+
+.portrait-cutout-qa-controls button[aria-pressed="true"] {
+  background: #4f746e;
+  border-color: #4f746e;
+  color: #fffaf1;
+}
+
+.portrait-cutout-qa-side-zoom {
+  backdrop-filter: blur(16px);
+  background: rgba(255, 252, 245, 0.92);
+  border: 1px solid rgba(78, 65, 48, 0.2);
+  border-radius: 14px;
+  bottom: 22px;
+  box-shadow: 0 18px 46px rgba(53, 38, 22, 0.2);
+  overflow: hidden;
+  padding: 10px;
+  position: absolute;
+  right: 22px;
+  width: 560px;
+  z-index: 20;
+}
+
+.portrait-cutout-qa-side-zoom-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.portrait-cutout-qa-side-zoom figure {
+  margin: 0;
+}
+
+.portrait-cutout-qa-side-zoom figure > div {
+  background-repeat: no-repeat;
+  background-size: 2048px 3072px;
+  border-radius: 9px;
+  height: 270px;
+}
+
+.portrait-cutout-qa-side-zoom figure > div.is-left {
+  background-position: -650px -205px;
+}
+
+.portrait-cutout-qa-side-zoom figure > div.is-right {
+  background-position: -1080px -205px;
+}
+
+.portrait-cutout-qa-side-zoom figcaption {
+  color: rgba(86, 73, 60, 0.78);
+  font-size: 11px;
+  padding: 6px 4px 2px;
+}
+
+.portrait-cutout-qa-side-zoom > span {
+  color: #56493c;
+  display: block;
+  font-size: 12px;
+  padding: 8px 4px 2px;
+}
+
+@media (max-width: 1180px) {
+  .portrait-cutout-qa-controls > div:first-child,
+  .portrait-cutout-qa-zoom-toggle {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .portrait-cutout-qa-controls {
+    bottom: 14px;
+    top: auto;
+  }
+
+  .portrait-cutout-qa-conversation {
+    display: none;
+  }
+
+  .portrait-cutout-qa-room > .context-panel {
+    bottom: 0;
+    display: grid;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+  }
+
+  .portrait-cutout-qa-room .portrait-card {
+    transform: none;
+  }
+}

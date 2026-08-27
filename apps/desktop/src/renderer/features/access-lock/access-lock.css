@@ -1,0 +1,18 @@
+.access-lock-screen { align-items: center; display: grid; inset: 0; justify-items: center; pointer-events: none; position: absolute; z-index: 3; }
+.access-lock-dialogue { animation: access-lock-enter .3s ease both; background: linear-gradient(135deg, rgba(255, 252, 236, .98), rgba(245, 234, 204, .98)); border: 1px solid rgba(110, 77, 42, .64); border-radius: 16px; box-shadow: 0 24px 70px rgba(23, 14, 8, .48), inset 0 0 0 3px rgba(177, 135, 73, .13); color: #49331f; max-width: min(90vw, 440px); padding: 26px 30px 24px; pointer-events: auto; position: relative; width: 100%; }
+.access-lock-dialogue-heading { border-bottom: 1px solid rgba(119, 85, 48, .22); margin-bottom: 22px; padding-bottom: 16px; position: relative; }
+.access-lock-dialogue-heading p { color: #8a6d49; font-size: 12px; letter-spacing: .14em; margin: 0 0 7px; }
+.access-lock-dialogue-heading h1 { color: #443020; font-family: var(--font-title); font-size: 29px; letter-spacing: .05em; margin: 0; }
+.access-lock-dialogue-heading span { background: #789278; border-radius: 99px; bottom: -2px; height: 3px; left: 0; position: absolute; width: 72px; }
+.access-lock-form { display: grid; gap: 14px; }
+.access-lock-form > p { color: #624b34; font-size: 15px; line-height: 1.7; margin: 0 0 3px; }
+.access-lock-form label { display: grid; gap: 7px; }
+.access-lock-form label > span { color: #654b31; font-size: 14px; font-weight: 700; }
+.access-lock-form input, .access-lock-form textarea { background: rgba(255, 253, 243, .86); border: 1px solid rgba(125, 91, 55, .34); border-radius: 9px; box-sizing: border-box; color: #3c2b1d; font: inherit; outline: none; padding: 11px 12px; resize: vertical; width: 100%; }
+.access-lock-form input:focus, .access-lock-form textarea:focus { border-color: #718a70; box-shadow: 0 0 0 3px rgba(113, 138, 112, .18); }
+.access-lock-primary { background: #738d72; border: 0; border-radius: 9px; color: #fffdf5; cursor: pointer; font: 600 16px var(--font-title); letter-spacing: .06em; margin-top: 5px; min-height: 44px; }
+.access-lock-primary:disabled, .access-lock-link:disabled { cursor: default; opacity: .55; }
+.access-lock-link { background: transparent; border: 0; color: #6a8568; cursor: pointer; font: inherit; justify-self: center; padding: 4px; text-decoration: underline; text-underline-offset: 3px; }
+.access-lock-feedback { color: #a64937; font-size: 14px; margin: 13px 0 0; text-align: center; }
+@keyframes access-lock-enter { from { opacity: 0; transform: translateY(14px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@media (max-height: 720px) { .access-lock-dialogue { max-height: calc(100vh - 32px); overflow: auto; padding: 24px 28px; } .access-lock-form { gap: 10px; } }

@@ -1,0 +1,114 @@
+{
+  "name": "ling",
+  "version": "1.0.16",
+  "private": true,
+  "type": "module",
+  "author": "上海啸群教育科技有限公司",
+  "license": "Apache-2.0",
+  "description": "Ling 是一个开源 AI 心理咨询框架与桌面应用。",
+  "main": "dist-electron/apps/desktop/src/main/index.js",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 45174 --strictPort",
+    "dev:ui-portrait": "vite --host 127.0.0.1 --port 5185 --strictPort",
+    "app": "npm run dev:electron",
+    "dev:electron": "npm run rebuild:sqlite:electron && tsc -p tsconfig.node.json && concurrently -k \"npm run dev\" \"wait-on http://localhost:45174 && cross-env VITE_DEV_SERVER_URL=http://localhost:45174 electron .\"",
+    "dev:electron:settings-layout": "npm run rebuild:sqlite:electron && concurrently -k \"vite --host 127.0.0.1 --port 5194 --strictPort\" \"wait-on http://localhost:5194 && cross-env LING_APP_TITLE='Ling Settings Layout' VITE_DEV_SERVER_URL=http://localhost:5194 electron .\"",
+    "dev:electron:model-access": "npm run rebuild:sqlite:electron && concurrently -k \"vite --host 127.0.0.1 --port 5195 --strictPort\" \"wait-on http://localhost:5195 && cross-env LING_APP_TITLE='Ling Model Access' VITE_DEV_SERVER_URL=http://localhost:5195 electron .\"",
+    "app:ui-portrait": "npm run rebuild:sqlite:electron && tsc -p tsconfig.node.json && concurrently -k \"npm run dev:ui-portrait\" \"wait-on http://127.0.0.1:5185 && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5185 electron .\"",
+    "build": "npm run localization:verify && tsc -p tsconfig.json && vite build && tsc -p tsconfig.node.json && node scripts/copy-prompt-assets.mjs && node scripts/verify-desktop-build.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.node.json --noEmit",
+    "localization:verify": "node scripts/verify-localization.mjs",
+    "licenses:verify": "node scripts/verify-dependency-licenses.mjs",
+    "public-boundary:verify": "node scripts/verify-public-boundary.mjs",
+    "public:export": "node scripts/export-public-repository.mjs",
+    "counselor:create": "node scripts/create-counselor-package.mjs",
+    "localization:update-hashes": "node scripts/verify-localization.mjs --update",
+    "test": "npm run rebuild:sqlite:node && vitest",
+    "smoke:credentials:electron": "electron scripts/system-credential-smoke.mjs",
+    "version:patch": "npm version patch --no-git-tag-version",
+    "version:minor": "npm version minor --no-git-tag-version",
+    "update:manifest": "node scripts/create-update-manifest.mjs",
+    "package:mac": "npm run build && npm run rebuild:sqlite:electron && electron-builder --mac dir --config.npmRebuild=false",
+    "package:mac:dev": "npm run build && npm run rebuild:sqlite:electron && cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --config electron-builder.dev.json --mac dir --config.npmRebuild=false",
+    "refresh:ling-dev": "node scripts/refresh-ling-dev-app.mjs",
+    "setup:ling-dev-auto-refresh": "node scripts/setup-ling-dev-auto-refresh.mjs",
+    "dist:mac": "npm run build && npm run rebuild:sqlite:electron && electron-builder --mac dmg --config.npmRebuild=false",
+    "dist:win": "npm run build && electron-builder --win nsis",
+    "rebuild:sqlite:electron": "cross-env npm_config_runtime=electron npm_config_target=34.0.2 npm_config_disturl=https://electronjs.org/headers npm rebuild better-sqlite3 better-sqlite3-multiple-ciphers",
+    "rebuild:sqlite:node": "npm rebuild better-sqlite3 better-sqlite3-multiple-ciphers"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.11.1",
+    "better-sqlite3-multiple-ciphers": "12.2.0",
+    "sherpa-onnx-node": "1.13.3",
+    "ws": "^8.21.1"
+  },
+  "devDependencies": {
+    "@fontsource/noto-serif-sc": "^5.2.8",
+    "@phosphor-icons/react": "^2.1.10",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.10.7",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "@types/ws": "^8.18.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^34.5.8",
+    "electron-builder": "^26.15.3",
+    "jsdom": "^25.0.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.7",
+    "vitest": "^2.1.8",
+    "wait-on": "^8.0.1",
+    "zustand": "^5.0.3"
+  },
+  "build": {
+    "appId": "cn.xiaoqunpsy.ling",
+    "productName": "Ling",
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "assets/app/ling-app-icon-512.png",
+        "to": "assets/app/ling-app-icon-512.png"
+      },
+      {
+        "from": "assets/models/voice/x-asr-zh-en-punct-int8-480ms-2026-06-05",
+        "to": "voice-models/x-asr-zh-en-punct-int8-480ms-2026-06-05"
+      }
+    ],
+    "asarUnpack": [
+      "node_modules/better-sqlite3/**",
+      "node_modules/better-sqlite3-multiple-ciphers/**",
+      "node_modules/sherpa-onnx-darwin-*/**",
+      "node_modules/sherpa-onnx-linux-*/**",
+      "node_modules/sherpa-onnx-win-*/**"
+    ],
+    "mac": {
+      "category": "public.app-category.healthcare-fitness",
+      "icon": "assets/app/ling-app-icon.icns",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Ling 使用麦克风将语音转换为文字。本地模型不会上传音频，云端模式会发送至所选服务。 Ling uses the microphone to turn speech into text. The local model does not upload audio; cloud mode sends it to your selected provider."
+      }
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "assets/app/ling-app-icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

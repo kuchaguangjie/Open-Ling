@@ -1,0 +1,51 @@
+name: Windows desktop smoke test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  packaged-renderer:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test -- --run
+      - run: npm run build
+      - run: npx electron-builder --win dir --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - name: Verify packaged resources and launch
+        shell: pwsh
+        run: |
+          $app = "release/win-unpacked/Ling.exe"
+          $resources = "release/win-unpacked/resources"
+          $required = @(
+            $app,
+            "$resources/app.asar",
+            "$resources/app.asar.unpacked/node_modules/better-sqlite3/build/Release/better_sqlite3.node",
+            "$resources/app.asar.unpacked/node_modules/sherpa-onnx-win-x64/sherpa-onnx.node",
+            "$resources/app.asar.unpacked/node_modules/sherpa-onnx-win-x64/onnxruntime.dll",
+            "$resources/voice-models/x-asr-zh-en-punct-int8-480ms-2026-06-05/decoder.onnx"
+          )
+
+          foreach ($path in $required) {
+            if (-not (Test-Path $path)) {
+              throw "Missing packaged Windows resource: $path"
+            }
+          }
+
+          $userData = Join-Path $env:RUNNER_TEMP "ling-windows-smoke"
+          $process = Start-Process -FilePath $app -ArgumentList "--user-data-dir=$userData", "--disable-gpu" -PassThru
+          Start-Sleep -Seconds 12
+          if ($process.HasExited) {
+            throw "Packaged Ling exited during Windows startup smoke test (exit code $($process.ExitCode))."
+          }
+          Stop-Process -Id $process.Id -Force

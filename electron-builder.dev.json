@@ -1,0 +1,35 @@
+{
+  "appId": "cn.xiaoqunpsy.ling.dev",
+  "productName": "Ling Dev",
+  "directories": {
+    "output": "release/dev"
+  },
+  "files": [
+    "dist/**/*",
+    "dist-electron/**/*"
+  ],
+  "extraResources": [
+    {
+      "from": "assets/app/ling-app-icon-512.png",
+      "to": "assets/app/ling-app-icon-512.png"
+    },
+    {
+      "from": "assets/models/voice/x-asr-zh-en-punct-int8-480ms-2026-06-05",
+      "to": "voice-models/x-asr-zh-en-punct-int8-480ms-2026-06-05"
+    }
+  ],
+  "asarUnpack": [
+    "node_modules/better-sqlite3/**",
+    "node_modules/better-sqlite3-multiple-ciphers/**",
+    "node_modules/sherpa-onnx-darwin-*/**",
+    "node_modules/sherpa-onnx-linux-*/**",
+    "node_modules/sherpa-onnx-win-*/**"
+  ],
+  "mac": {
+    "category": "public.app-category.developer-tools",
+    "icon": "assets/app/ling-app-icon.icns",
+    "extendInfo": {
+      "NSMicrophoneUsageDescription": "Ling 使用麦克风将语音转换为文字。本地模型不会上传音频，云端模式会发送至所选服务。 Ling uses the microphone to turn speech into text. The local model does not upload audio; cloud mode sends it to your selected provider."
+    }
+  }
+}

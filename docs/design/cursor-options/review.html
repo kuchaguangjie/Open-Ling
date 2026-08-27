@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:," />
+  <title>Ling Q版光标试用台</title>
+  <style>
+    :root {
+      color: #493a2d;
+      font-family: "Noto Serif SC", "Songti SC", serif;
+      --cursor-default: url("assets/cursors/q-arrow-a-default.svg") 3 3, default;
+      --cursor-action: url("assets/cursors/q-hand-a-action.svg") 12 3, pointer;
+      --cursor-pressed: url("assets/cursors/q-hand-a-pressed.svg") 12 4, pointer;
+      --cursor-text: url("assets/cursors/q-arrow-a-text.svg") 16 16, text;
+    }
+    * { box-sizing: border-box; }
+    body[data-cursor="b"] { --cursor-default: url("assets/cursors/q-arrow-b-default.svg") 3 3, default; --cursor-action: url("assets/cursors/q-hand-b-action.svg") 12 3, pointer; --cursor-pressed: url("assets/cursors/q-hand-b-pressed.svg") 12 4, pointer; --cursor-text: url("assets/cursors/q-arrow-b-text.svg") 16 16, text; }
+    body[data-cursor="c"] { --cursor-default: url("assets/cursors/q-arrow-c-default.svg") 3 3, default; --cursor-action: url("assets/cursors/q-hand-c-action.svg") 12 3, pointer; --cursor-pressed: url("assets/cursors/q-hand-c-pressed.svg") 12 4, pointer; --cursor-text: url("assets/cursors/q-arrow-c-text.svg") 16 16, text; }
+    body[data-cursor="d"] { --cursor-default: url("assets/cursors/q-arrow-d-default.svg") 3 3, default; --cursor-action: url("assets/cursors/q-hand-d-action.svg") 12 3, pointer; --cursor-pressed: url("assets/cursors/q-hand-d-pressed.svg") 12 4, pointer; --cursor-text: url("assets/cursors/q-arrow-d-text.svg") 16 16, text; }
+    body[data-cursor="e"] { --cursor-default: url("assets/cursors/q-arrow-e-default.svg") 3 3, default; --cursor-action: url("assets/cursors/q-hand-e-action.svg") 12 3, pointer; --cursor-pressed: url("assets/cursors/q-hand-e-pressed.svg") 12 4, pointer; --cursor-text: url("assets/cursors/q-arrow-e-text.svg") 16 16, text; }
+    body, body * { cursor: var(--cursor-default) !important; }
+    body :where(button:not(:disabled), a[href], label[for], input[type="range"], [role="button"], [draggable="true"]) { cursor: var(--cursor-action) !important; }
+    body.is-pressing, body.is-pressing * { cursor: var(--cursor-pressed) !important; }
+    input[type="text"], textarea, [contenteditable="true"] { cursor: var(--cursor-text) !important; }
+    button:disabled, input:disabled { cursor: not-allowed !important; }
+    [aria-busy="true"] { cursor: wait !important; }
+    body { background: #e9dfcf; margin: 0; min-height: 100vh; }
+    button, input, textarea { font: inherit; }
+    .shell { margin: 0 auto; max-width: 1420px; padding: 32px 34px 46px; }
+    header { align-items: end; display: flex; gap: 24px; justify-content: space-between; margin-bottom: 22px; }
+    h1 { font-size: 28px; font-weight: 600; letter-spacing: .07em; margin: 0 0 8px; }
+    header p { color: #796854; line-height: 1.6; margin: 0; }
+    .live-status { align-items: center; background: rgba(255,252,244,.8); border: 1px solid rgba(93,68,48,.18); border-radius: 999px; display: flex; flex: 0 0 auto; font: 13px system-ui; gap: 9px; padding: 8px 13px; }
+    .status-dot { background: #71896e; border-radius: 50%; box-shadow: 0 0 0 4px rgba(113,137,110,.13); height: 8px; width: 8px; }
+    .options { display: grid; gap: 16px; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 20px; }
+    .option { background: #fffaf0; border: 1px solid rgba(93,68,48,.2); border-radius: 18px; box-shadow: 0 8px 22px rgba(75,52,31,.07); color: inherit; overflow: hidden; padding: 0; text-align: left; transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease; }
+    .option:hover { transform: translateY(-2px); }
+    .option[aria-pressed="true"] { border-color: #71896e; box-shadow: 0 0 0 2px rgba(113,137,110,.18), 0 12px 28px rgba(69,92,66,.15); }
+    .option-visual { align-items: center; background-color: #f3eadb; background-image: linear-gradient(45deg, rgba(95,72,50,.045) 25%, transparent 25%), linear-gradient(-45deg, rgba(95,72,50,.045) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, rgba(95,72,50,.045) 75%), linear-gradient(-45deg, transparent 75%, rgba(95,72,50,.045) 75%); background-position: 0 0, 0 9px, 9px -9px, -9px 0; background-size: 18px 18px; display: flex; gap: 14px; height: 148px; justify-content: center; }
+    .option-visual img { height: 58px; width: 58px; }
+    .option-visual span { align-items: center; display: flex; flex-direction: column; font: 10px system-ui; gap: 4px; }
+    .option-copy { align-items: center; display: grid; gap: 3px 10px; grid-template-columns: auto 1fr; padding: 14px 15px 15px; }
+    .letter { align-items: center; background: #71896e; border-radius: 50%; color: #fffdf7; display: flex; font: 700 13px system-ui; grid-row: span 2; height: 30px; justify-content: center; width: 30px; }
+    .option strong { font-size: 16px; font-weight: 600; }
+    .option small { color: #85735f; font: 12px system-ui; }
+    .playground { background: #fffaf0; border: 1px solid rgba(93,68,48,.2); border-radius: 22px; box-shadow: 0 16px 42px rgba(75,52,31,.1); overflow: hidden; }
+    .playground-bar { align-items: center; background: #5b402e; color: #fff6e8; display: flex; justify-content: space-between; min-height: 56px; padding: 10px 18px; }
+    .playground-bar strong { font-size: 15px; letter-spacing: .05em; }
+    .state-readout { align-items: center; display: flex; font: 12px system-ui; gap: 8px; opacity: .92; }
+    .state-icon { background: rgba(255,255,255,.13); border-radius: 8px; height: 32px; object-fit: contain; padding: 3px; width: 32px; }
+    .test-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(330px, .8fr); min-height: 410px; }
+    .mock-app { background: linear-gradient(135deg, rgba(255,253,246,.9), rgba(239,229,208,.82)); border-right: 1px solid rgba(93,68,48,.14); padding: 26px; }
+    .mock-nav { align-items: center; display: flex; justify-content: space-between; margin-bottom: 24px; }
+    .mock-brand { align-items: center; display: flex; font-weight: 600; gap: 9px; }
+    .brand-mark { align-items: center; background: #71896e; border-radius: 11px; color: white; display: flex; height: 36px; justify-content: center; width: 36px; }
+    .mock-nav nav { display: flex; gap: 7px; }
+    .soft-button, .primary-button { border-radius: 999px; min-height: 37px; padding: 0 15px; }
+    .soft-button { background: rgba(255,250,240,.6); border: 1px solid rgba(105,81,55,.22); color: #695746; }
+    .primary-button { background: #71896e; border: 1px solid #61765e; color: white; }
+    .mock-panel { background: rgba(255,252,244,.72); border: 1px solid rgba(103,79,54,.15); border-radius: 18px; padding: 22px; }
+    .mock-panel h2 { font-size: 20px; font-weight: 600; margin: 0 0 8px; }
+    .mock-panel > p { color: #796854; line-height: 1.6; margin: 0 0 18px; }
+    .form-row { display: grid; gap: 9px; grid-template-columns: 1fr auto; }
+    .form-row input { background: #fffdf8; border: 1px solid rgba(103,79,54,.24); border-radius: 10px; color: #4d4033; min-height: 42px; outline: none; padding: 0 13px; }
+    .form-row input:focus { border-color: #71896e; box-shadow: 0 0 0 3px rgba(113,137,110,.16); }
+    .control-row { align-items: center; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 17px; }
+    .wait-button[aria-busy="true"] { opacity: .68; }
+    .range-row { align-items: center; color: #786854; display: grid; font: 13px system-ui; gap: 12px; grid-template-columns: auto 1fr; margin-top: 20px; }
+    .range-row input { accent-color: #71896e; width: 100%; }
+    .interaction-lab { background: #f1e7d6; padding: 26px; }
+    .interaction-lab h2 { font-size: 17px; margin: 0 0 7px; }
+    .interaction-lab > p { color: #7d6b57; font: 13px/1.55 system-ui; margin: 0 0 17px; }
+    .state-list { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); }
+    .state-card { align-items: center; background: #fffaf0; border: 1px solid rgba(92,68,47,.17); border-radius: 13px; display: flex; font: 12px system-ui; gap: 10px; padding: 11px; }
+    .state-card img { height: 34px; width: 34px; }
+    .drop-zone { align-items: center; border: 1px dashed rgba(91,64,46,.34); border-radius: 15px; display: flex; flex-wrap: wrap; gap: 9px; margin-top: 16px; min-height: 92px; padding: 14px; }
+    .drop-zone.is-over { background: rgba(113,137,110,.12); border-color: #71896e; }
+    .drop-zone-label { color: #8a7965; flex-basis: 100%; font: 11px system-ui; }
+    .drag-card { background: #fffaf0; border: 1px solid rgba(92,68,47,.19); border-radius: 10px; box-shadow: 0 5px 13px rgba(77,52,30,.08); font: 13px system-ui; padding: 9px 11px; user-select: none; }
+    .tip { background: rgba(113,137,110,.1); border: 1px solid rgba(113,137,110,.22); border-radius: 12px; color: #657161; font: 12px/1.55 system-ui; margin-top: 14px; padding: 11px 13px; }
+    @media (max-width: 980px) { .options { grid-template-columns: 1fr; } .test-grid { grid-template-columns: 1fr; } .mock-app { border-bottom: 1px solid rgba(93,68,48,.14); border-right: 0; } }
+    @media (max-width: 620px) { .shell { padding: 22px 16px 32px; } header { align-items: start; flex-direction: column; } .mock-nav nav { display: none; } .form-row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body data-cursor="a">
+  <main class="shell">
+    <header>
+      <div><h1>Ling · Q版光标试用台</h1><p>普通区域使用Q版箭头，可交互区域切换为同色小手，输入框保持工字形。</p></div>
+      <div class="live-status"><span class="status-dot"></span><span id="selected-label">正在试用 A · 奶油经典</span></div>
+    </header>
+    <section aria-label="光标方案" class="options">
+      <button aria-pressed="true" class="option" data-option="a" type="button"><span class="option-visual"><span><img src="assets/cursors/q-arrow-a-default.svg" alt="" />默认</span><span><img src="assets/cursors/q-hand-a-action.svg" alt="" />可点击</span><span><img src="assets/cursors/q-hand-a-pressed.svg" alt="" />按下</span><span><img src="assets/cursors/q-arrow-a-text.svg" alt="" />输入</span></span><span class="option-copy"><span class="letter">A</span><strong>奶油经典</strong><small>稳重、最贴合 Ling 现有界面</small></span></button>
+      <button aria-pressed="false" class="option" data-option="b" type="button"><span class="option-visual"><span><img src="assets/cursors/q-arrow-b-default.svg" alt="" />默认</span><span><img src="assets/cursors/q-hand-b-action.svg" alt="" />可点击</span><span><img src="assets/cursors/q-hand-b-pressed.svg" alt="" />按下</span><span><img src="assets/cursors/q-arrow-b-text.svg" alt="" />输入</span></span><span class="option-copy"><span class="letter">B</span><strong>鼠尾草胖箭头</strong><small>更Q、轮廓最饱满</small></span></button>
+      <button aria-pressed="false" class="option" data-option="c" type="button"><span class="option-visual"><span><img src="assets/cursors/q-arrow-c-default.svg" alt="" />默认</span><span><img src="assets/cursors/q-hand-c-action.svg" alt="" />可点击</span><span><img src="assets/cursors/q-hand-c-pressed.svg" alt="" />按下</span><span><img src="assets/cursors/q-arrow-c-text.svg" alt="" />输入</span></span><span class="option-copy"><span class="letter">C</span><strong>桃杏轻巧箭头</strong><small>最轻快，状态提示最明显</small></span></button>
+      <button aria-pressed="false" class="option" data-option="d" type="button"><span class="option-visual"><span><img src="assets/cursors/q-arrow-d-default.svg" alt="" />默认</span><span><img src="assets/cursors/q-hand-d-action.svg" alt="" />可点击</span><span><img src="assets/cursors/q-hand-d-pressed.svg" alt="" />按下</span><span><img src="assets/cursors/q-arrow-d-text.svg" alt="" />输入</span></span><span class="option-copy"><span class="letter">D</span><strong>月光纯白</strong><small>黑白克制，最接近专业系统光标</small></span></button>
+      <button aria-pressed="false" class="option" data-option="e" type="button"><span class="option-visual"><span><img src="assets/cursors/q-arrow-e-default.svg" alt="" />默认</span><span><img src="assets/cursors/q-hand-e-action.svg" alt="" />可点击</span><span><img src="assets/cursors/q-hand-e-pressed.svg" alt="" />按下</span><span><img src="assets/cursors/q-arrow-e-text.svg" alt="" />输入</span></span><span class="option-copy"><span class="letter">E</span><strong>软糖圆尖</strong><small>尖头与转角更圆，Q感更明显</small></span></button>
+    </section>
+    <section class="playground">
+      <div class="playground-bar"><strong>真实交互试用区</strong><div class="state-readout"><img alt="" class="state-icon" id="state-icon" src="assets/cursors/q-arrow-a-default.svg" /><span id="pointer-state">默认箭头</span></div></div>
+      <div class="test-grid">
+        <div class="mock-app">
+          <div class="mock-nav"><div class="mock-brand"><span class="brand-mark">灵</span><span>群心心理工作室</span></div><nav><button class="soft-button" type="button">等待室</button><button class="soft-button" type="button">设置</button></nav></div>
+          <div class="mock-panel">
+            <h2>在界面里来回试试</h2><p>移到按钮和热区会变成同色小手；按下时小手会略微下沉并出现反馈线；输入框会变成工字形。</p>
+            <div class="form-row"><input aria-label="输入测试" placeholder="把鼠标移进来，查看Q版工字形" type="text" /><button class="primary-button" type="button">发送测试</button></div>
+            <div class="control-row"><button class="soft-button" type="button">普通按钮</button><button class="soft-button" disabled type="button">禁用状态</button><button aria-busy="false" class="soft-button wait-button" id="wait-button" type="button">点击测试等待态</button></div>
+            <label class="range-row">界面缩放 <input aria-label="界面缩放" max="100" min="0" type="range" value="58" /></label>
+          </div>
+        </div>
+        <aside class="interaction-lab">
+          <h2>状态对照</h2><p>光标尺寸是真实 32×32px，热点固定在箭头尖端。可以在浅色和深色卡片上反复比较。</p>
+          <div class="state-list"><div class="state-card"><img data-state-preview="default" alt="" /><span>默认移动</span></div><div class="state-card"><img data-state-preview="action" alt="" /><span>可点击</span></div><div class="state-card"><img data-state-preview="pressed" alt="" /><span>按下反馈</span></div><div class="state-card"><img data-state-preview="text" alt="" /><span>文字输入</span></div></div>
+          <div class="drop-zone" data-drop-zone><span class="drop-zone-label">拖动区域一</span><div class="drag-card" draggable="true">会谈记录</div><div class="drag-card" draggable="true">心情备忘</div></div>
+          <div class="drop-zone" data-drop-zone><span class="drop-zone-label">拖动区域二</span></div>
+          <div class="tip">建议每套都试一遍：空白处移动 → 按钮悬停 → 长按 → 输入框。页面会记住最后选择。</div>
+        </aside>
+      </div>
+    </section>
+  </main>
+  <script>
+    const names = { a: "A · 奶油经典", b: "B · 鼠尾草胖箭头", c: "C · 桃杏轻巧箭头", d: "D · 月光纯白", e: "E · 软糖圆尖" };
+    const states = ["default", "action", "pressed", "text"];
+    const labels = { default: "默认箭头", action: "可点击箭头", pressed: "按下箭头", text: "输入工字形" };
+    const optionButtons = [...document.querySelectorAll("[data-option]")];
+    const selectedLabel = document.querySelector("#selected-label");
+    const pointerState = document.querySelector("#pointer-state");
+    const stateIcon = document.querySelector("#state-icon");
+    const asset = (key, state) => `assets/cursors/${state === "action" || state === "pressed" ? "q-hand" : "q-arrow"}-${key}-${state}.svg`;
+    function showState(state) { pointerState.textContent = labels[state]; stateIcon.src = asset(document.body.dataset.cursor, state); }
+    function selectOption(key) {
+      const actualKey = key in names ? key : "a";
+      document.body.dataset.cursor = actualKey;
+      optionButtons.forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.option === actualKey)));
+      selectedLabel.textContent = `正在试用 ${names[actualKey]}`;
+      document.querySelectorAll("[data-state-preview]").forEach((image) => { image.src = asset(actualKey, image.dataset.statePreview); });
+      showState("default");
+      localStorage.setItem("ling-q-arrow-option", actualKey);
+    }
+    function stateFor(target) {
+      if (target.closest("input[type='text'], textarea, [contenteditable='true']")) return "text";
+      if (target.closest("button:not(:disabled), a[href], label[for], input[type='range'], [role='button'], [draggable='true']")) return "action";
+      return "default";
+    }
+    optionButtons.forEach((button) => button.addEventListener("click", () => selectOption(button.dataset.option)));
+    document.addEventListener("pointerover", (event) => { if (!document.body.classList.contains("is-pressing")) showState(stateFor(event.target)); });
+    document.addEventListener("pointerdown", (event) => { if (stateFor(event.target) !== "action") return; document.body.classList.add("is-pressing"); showState("pressed"); });
+    document.addEventListener("pointerup", (event) => { document.body.classList.remove("is-pressing"); showState(stateFor(event.target)); });
+    document.addEventListener("pointercancel", () => { document.body.classList.remove("is-pressing"); showState("default"); });
+    window.addEventListener("blur", () => { document.body.classList.remove("is-pressing"); showState("default"); });
+    document.querySelector("#wait-button").addEventListener("click", (event) => { const button = event.currentTarget; button.setAttribute("aria-busy", "true"); button.textContent = "正在准备…"; window.setTimeout(() => { button.setAttribute("aria-busy", "false"); button.textContent = "点击测试等待态"; }, 1800); });
+    document.querySelectorAll("[draggable='true']").forEach((card) => { card.addEventListener("dragstart", () => { window.draggedCard = card; }); card.addEventListener("dragend", () => { window.draggedCard = null; document.body.classList.remove("is-pressing"); showState("default"); }); });
+    document.querySelectorAll("[data-drop-zone]").forEach((zone) => {
+      zone.addEventListener("dragover", (event) => { event.preventDefault(); zone.classList.add("is-over"); });
+      zone.addEventListener("dragleave", () => zone.classList.remove("is-over"));
+      zone.addEventListener("drop", (event) => { event.preventDefault(); zone.classList.remove("is-over"); if (window.draggedCard) zone.append(window.draggedCard); });
+    });
+    selectOption(localStorage.getItem("ling-q-arrow-option") || "a");
+  </script>
+</body>
+</html>

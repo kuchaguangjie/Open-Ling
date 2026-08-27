@@ -1,0 +1,37 @@
+.consultation-entry-choice {
+  color: #493828;
+  margin: auto;
+  max-width: 620px;
+  padding: clamp(42px, 6vw, 64px) clamp(34px, 7vw, 68px) clamp(34px, 5vw, 52px);
+}
+.consultation-entry-choice > p:first-child { color: #8b6843; font-size: 13px; letter-spacing: 0.12em; margin: 0 0 10px; }
+.consultation-entry-choice h2 { font-family: Georgia, "Noto Serif SC", serif; font-size: clamp(25px, 3vw, 30px); font-weight: 500; margin-bottom: 16px; }
+.consultation-entry-choice p { line-height: 1.75; margin: 0; }
+.consultation-entry-choice-error { background: rgba(156, 65, 56, 0.08); border-left: 3px solid rgba(156, 65, 56, 0.62); color: #8b3932; margin-top: 18px !important; padding: 9px 12px; }
+.consultation-entry-choice-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-end; margin-top: 28px; }
+.consultation-entry-choice-actions button { background: #74573a; border: 1px solid #74573a; border-radius: 999px; color: #fffaf1; cursor: pointer; min-height: 42px; padding: 9px 18px; }
+.consultation-entry-choice-actions button.secondary { background: rgba(255, 250, 241, 0.32); color: #5f4934; }
+.consultation-entry-choice-actions button:disabled { cursor: wait; opacity: 0.58; }
+
+/* Reuse the resource desk's shared wood slices and paper layer, but keep this
+   decision compact so it still reads as a choice card rather than a workspace. */
+.lobby-overlay-panel.lobby-overlay-studio-surface.lobby-overlay-booking-choice {
+  --studio-frame-reveal: clamp(22px, 2.4vw, 30px);
+  height: auto;
+  max-height: min(92vh, 580px);
+  max-width: 760px;
+  width: min(90%, 760px);
+}
+
+.lobby-overlay-panel.lobby-overlay-studio-surface.lobby-overlay-booking-choice .lobby-overlay-paper {
+  height: auto;
+  max-height: calc(92vh - 44px);
+  overflow-y: auto;
+}
+
+@media (max-width: 680px), (max-height: 720px) {
+  .consultation-entry-choice { padding: 38px 28px 28px; }
+  .consultation-entry-choice-actions { justify-content: stretch; margin-top: 22px; }
+  .consultation-entry-choice-actions button { flex: 1 1 210px; }
+}
+.consultation-booking-progress-indicator { color: #8b6c48; font-size: 30px; letter-spacing: 0.25em; margin-top: 28px; }

@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "paths": {
+      "@shared/index": ["./packages/shared/src/index.ts"],
+      "@shared/*": ["./packages/shared/src/*"],
+      "@core/index": ["./packages/core/src/index.ts"],
+      "@core/*": ["./packages/core/src/*"]
+    },
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "outDir": "dist-electron",
+    "rootDir": ".",
+    "types": ["node"]
+  },
+  "include": ["apps/desktop/src/main", "apps/desktop/src/preload", "packages/core/src/agents", "packages/core/src/counseling", "packages/core/src/counselors", "packages/core/src/prompts", "packages/core/src/providers", "packages/core/src/safety", "packages/database/src", "packages/shared/src"],
+  "exclude": ["**/*.test.ts", "**/*.test.tsx"]
+}

@@ -1,0 +1,219 @@
+.counselor-extensions-page {
+  padding-bottom: 28px;
+}
+
+.counselor-extensions-page .system-content-header {
+  display: block;
+}
+
+.counselor-extensions-page .system-content-header p {
+  max-width: 760px;
+}
+
+.counselor-extension-install {
+  align-items: center;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+}
+
+.counselor-extension-install > div {
+  min-width: 0;
+}
+
+.counselor-extension-install h2,
+.counselor-extension-list h2,
+.counselor-extension-item h3 {
+  color: #3f3424;
+  font-family: var(--font-title);
+  margin: 0;
+}
+
+.counselor-extension-install p,
+.counselor-extension-item p,
+.counselor-extension-empty {
+  color: #675e4f;
+  line-height: 1.65;
+  margin: 7px 0 0;
+}
+
+.counselor-extension-install button {
+  flex: 0 0 auto;
+}
+
+.counselor-extension-risk {
+  background: rgba(151, 123, 73, 0.08);
+  border: 1px solid rgba(151, 123, 73, 0.28);
+  border-left: 4px solid rgba(151, 123, 73, 0.58);
+  border-radius: 11px;
+  color: #5f5546;
+  padding: 13px 15px;
+}
+
+.counselor-extension-risk strong {
+  color: #4b4031;
+  font-family: var(--font-title);
+}
+
+.counselor-extension-risk p {
+  line-height: 1.6;
+  margin: 5px 0 0;
+}
+
+.counselor-extension-message {
+  border-radius: 10px;
+  margin: 0;
+  padding: 11px 14px;
+}
+
+.counselor-extension-message.success {
+  background: rgba(104, 132, 111, 0.13);
+  color: #405c47;
+}
+
+.counselor-extension-message.error {
+  background: rgba(151, 77, 61, 0.12);
+  color: #7a3f34;
+}
+
+.counselor-extension-preview {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.counselor-extension-preview h2 {
+  color: #3f3424;
+  font-family: var(--font-title);
+  margin: 8px 0 0;
+}
+
+.counselor-extension-preview p {
+  color: #675e4f;
+  line-height: 1.6;
+  margin: 5px 0 0;
+}
+
+.counselor-extension-preview dl {
+  display: grid;
+  gap: 7px 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 14px 0 0;
+}
+
+.counselor-extension-preview dl div {
+  display: grid;
+  gap: 2px;
+}
+
+.counselor-extension-preview dt {
+  color: rgba(88, 78, 62, 0.68);
+  font-size: 12px;
+}
+
+.counselor-extension-preview dd {
+  color: #493f31;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.counselor-extension-review-note {
+  background: rgba(151, 123, 73, 0.09);
+  border-left: 3px solid rgba(151, 123, 73, 0.5);
+  padding: 9px 11px;
+}
+
+.counselor-extension-source {
+  background: rgba(104, 132, 111, 0.12);
+  border-radius: 999px;
+  color: #526b58;
+  display: inline-block;
+  font-size: 12px;
+  line-height: 1;
+  padding: 5px 8px;
+}
+
+.counselor-extension-list {
+  background: rgba(255, 253, 247, 0.64);
+  border: 1px solid rgba(190, 174, 140, 0.68);
+  border-radius: 13px;
+  overflow: hidden;
+}
+
+.counselor-extension-list > header {
+  align-items: center;
+  border-bottom: 1px solid rgba(190, 174, 140, 0.5);
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 18px;
+}
+
+.counselor-extension-list > header span {
+  background: rgba(104, 132, 111, 0.14);
+  border-radius: 999px;
+  color: #526b58;
+  min-width: 28px;
+  padding: 4px 9px;
+  text-align: center;
+}
+
+.counselor-extension-empty {
+  margin: 0;
+  padding: 22px 18px;
+}
+
+.counselor-extension-item {
+  align-items: center;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 54px minmax(0, 1fr) auto;
+  padding: 14px 18px;
+}
+
+.counselor-extension-item + .counselor-extension-item {
+  border-top: 1px solid rgba(190, 174, 140, 0.38);
+}
+
+.counselor-extension-item.disabled {
+  background: rgba(116, 108, 94, 0.05);
+}
+
+.counselor-extension-item.disabled > img {
+  filter: grayscale(0.55);
+  opacity: 0.58;
+}
+
+.counselor-extension-item img {
+  background: rgba(234, 228, 209, 0.7);
+  border-radius: 50%;
+  height: 50px;
+  object-fit: cover;
+  width: 50px;
+}
+
+.counselor-extension-item p {
+  margin-top: 2px;
+}
+
+.counselor-extension-item small {
+  color: rgba(88, 78, 62, 0.72);
+  display: block;
+  margin-top: 5px;
+}
+
+.counselor-extension-actions {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 760px) {
+  .counselor-extension-install {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .counselor-extension-preview,
+  .counselor-extension-preview dl {
+    grid-template-columns: 1fr;
+  }
+}

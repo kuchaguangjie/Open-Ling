@@ -1,0 +1,100 @@
+name: Build desktop release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Optional release tag (for example v1.0.2); defaults to package.json"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  resolve-version:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve release version
+        id: meta
+        shell: bash
+        run: |
+          if [ -n "${{ inputs.release_tag }}" ]; then
+            tag="${{ inputs.release_tag }}"
+          elif [ "${{ github.ref_type }}" = "tag" ]; then
+            tag="${GITHUB_REF_NAME}"
+          else
+            tag="v$(node -p "require('./package.json').version")"
+          fi
+          if [[ "$tag" != v* ]]; then
+            tag="v${tag}"
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: resolve-version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows x64
+            os: windows-latest
+            platform: win
+            arch: x64
+            artifact: ling-windows-x64
+    name: Build ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Validate package version
+        shell: bash
+        run: |
+          package_version=$(node -p "require('./package.json').version")
+          if [ "$package_version" != "${{ needs.resolve-version.outputs.version }}" ]; then
+            echo "package.json version ($package_version) does not match release version (${{ needs.resolve-version.outputs.version }})"
+            exit 1
+          fi
+      - run: npm ci
+      - run: npm run build
+      - name: Build Windows installer
+        if: matrix.platform == 'win'
+        run: npx electron-builder --win nsis --${{ matrix.arch }} --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            release/*.exe
+            release/*.exe.blockmap
+          if-no-files-found: error
+          retention-days: 14
+
+  publish-release:
+    needs: [resolve-version, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+          merge-multiple: true
+      - name: Create or update GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ needs.resolve-version.outputs.tag }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" release-artifacts/* --clobber
+          else
+            gh release create "$TAG" release-artifacts/* --title "Ling $TAG" --generate-notes
+          fi

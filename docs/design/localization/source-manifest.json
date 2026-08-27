@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "id": "prompt.counselor.chengling",
+      "source": "packages/core/src/prompts/counselor-cores/chengling.md",
+      "translation": "packages/core/src/prompts/en-US/counselor-cores/chengling.md",
+      "sourceHash": "342450d553f6496b68e146a26e2b99bd1d2cb25f409304a6170c85bc334ee2b0"
+    },
+    {
+      "id": "prompt.counselor.linleshui",
+      "source": "packages/core/src/prompts/counselor-cores/linleshui.md",
+      "translation": "packages/core/src/prompts/en-US/counselor-cores/linleshui.md",
+      "sourceHash": "164d5176e7f9daa4a7bafd6e286571a6e8073191a99050e3f58c0ffa59575299"
+    },
+    {
+      "id": "prompt.counselor.zhouzhou",
+      "source": "packages/core/src/prompts/counselor-cores/zhouzhou.md",
+      "translation": "packages/core/src/prompts/en-US/counselor-cores/zhouzhou.md",
+      "sourceHash": "37c273f72d1ee65baccd72ada953bdd469d00343d614a07204ed19e4484d3482"
+    },
+    {
+      "id": "prompt.shared.counseling-values",
+      "source": "packages/core/src/prompts/shared/counseling-values.md",
+      "translation": "packages/core/src/prompts/en-US/shared/counseling-values.md",
+      "sourceHash": "341ce41b46ed8a090dae90fedbc8eff43ed9aceef52132686181dce1aee57ca0"
+    },
+    {
+      "id": "prompt.policy.counseling-ethics",
+      "source": "packages/core/src/prompts/policies/counseling-ethics.md",
+      "translation": "packages/core/src/prompts/en-US/policies/counseling-ethics.md",
+      "sourceHash": "b66561c23f3d0ebd4aa923277fec27a18a47a4009846d0cea5f21614c2a8d848"
+    },
+    {
+      "id": "prompt.policy.realtime-safety",
+      "source": "packages/core/src/prompts/policies/realtime-safety.md",
+      "translation": "packages/core/src/prompts/en-US/policies/realtime-safety.md",
+      "sourceHash": "0d2a149ef29b9dabe0437abb1b0ccebbb0c4f363bc2ef4eeea913e23408fbcdb"
+    },
+    {
+      "id": "prompt.supervisor.li-yanyun",
+      "source": "packages/core/src/prompts/supervisor-cores/li-yanyun.md",
+      "translation": "packages/core/src/prompts/en-US/supervisor-cores/li-yanyun.md",
+      "sourceHash": "09e424019f471fb6255f3741aa6162236d055f975a0e5f0eca360d5e90cc7101"
+    },
+    {
+      "id": "prompt.task.dialogue.chengling",
+      "source": "packages/core/src/prompts/tasks/counseling-dialogue-chengling.md",
+      "translation": "packages/core/src/prompts/en-US/tasks/counseling-dialogue-chengling.md",
+      "sourceHash": "529f9b993ef028c07e2ec05db5e86e9a78192d3172c7f7a6a3cf22164601d84d"
+    },
+    {
+      "id": "prompt.task.dialogue.linleshui",
+      "source": "packages/core/src/prompts/tasks/counseling-dialogue-linleshui.md",
+      "translation": "packages/core/src/prompts/en-US/tasks/counseling-dialogue-linleshui.md",
+      "sourceHash": "ed5a32f20f0a94793fe0d8630eabc7171655fb47c48dc1627389528c6ad45604"
+    },
+    {
+      "id": "prompt.task.dialogue.zhouzhou",
+      "source": "packages/core/src/prompts/tasks/counseling-dialogue-zhouzhou.md",
+      "translation": "packages/core/src/prompts/en-US/tasks/counseling-dialogue-zhouzhou.md",
+      "sourceHash": "32a9041339976bd40cda435500ca7381b6e1c9676728c9531e353c3bb7c0f781"
+    },
+    {
+      "id": "prompt.task.long-term-conceptualization",
+      "source": "packages/core/src/prompts/tasks/long-term-conceptualization.md",
+      "translation": "packages/core/src/prompts/en-US/tasks/long-term-conceptualization.md",
+      "sourceHash": "d942baefca9d98257498ff776d75e16bc78bb563e7fbdb296bf631f56d512316"
+    },
+    {
+      "id": "prompt.task.next-session-memo",
+      "source": "packages/core/src/prompts/tasks/next-session-memo.md",
+      "translation": "packages/core/src/prompts/en-US/tasks/next-session-memo.md",
+      "sourceHash": "cb94fe24991ab19313a51d36e1f89295a066c85a5ab9b17cc70c6a08a44b0f9d"
+    },
+    {
+      "id": "prompt.task.post-session-supervision",
+      "source": "packages/core/src/prompts/tasks/post-session-supervision.md",
+      "translation": "packages/core/src/prompts/en-US/tasks/post-session-supervision.md",
+      "sourceHash": "2a54761826ca141535d1d41d847ac1ce7ffa0608e33b54b1d56743f609379299"
+    },
+    {
+      "id": "prompt.task.session-conceptualization",
+      "source": "packages/core/src/prompts/tasks/session-conceptualization.md",
+      "translation": "packages/core/src/prompts/en-US/tasks/session-conceptualization.md",
+      "sourceHash": "e7d7312e403c29737d7fc7b62ae554dd4a8e4306ee0f6694a1a9b235c7cd0b1b"
+    },
+    {
+      "id": "prompt.task.session-letter",
+      "source": "packages/core/src/prompts/tasks/session-letter.md",
+      "translation": "packages/core/src/prompts/en-US/tasks/session-letter.md",
+      "sourceHash": "3df1625fb574fcac6ca149a883f227cd4b82e5ab223ffded185e75ef6a178e79"
+    },
+    {
+      "id": "content.informed-consent",
+      "source": "docs/design/lobby-resource-table/content/informed-consent.md",
+      "translation": "docs/design/lobby-resource-table/content/en-US/informed-consent.md",
+      "sourceHash": "f3141fb7076972561eaf21f4d102a3404deeaca6cf35ab3f729ad64a81e682bc"
+    },
+    {
+      "id": "content.privacy-notice",
+      "source": "PRIVACY.md",
+      "translation": "PRIVACY.en.md",
+      "sourceHash": "fe89bf8bc027cfed731c6d52ef477aa762e9470d7c3ee36338e7c70ea8b4a36b"
+    },
+    {
+      "id": "content.user-guide",
+      "source": "apps/desktop/src/renderer/pages/lobby/features/resources/userGuideContent.ts",
+      "translation": "apps/desktop/src/renderer/pages/lobby/features/resources/userGuideContent.en-US.ts",
+      "sourceHash": "1390e72bf91e680758d656f031443e50aaca02270c6c8e9e00b23c96dbc21fa7"
+    },
+    {
+      "id": "content.stories.primary",
+      "source": "apps/desktop/src/renderer/pages/lobby/features/bookcase/storyContent.ts",
+      "translation": "apps/desktop/src/renderer/pages/lobby/features/bookcase/storyContent.en-US.ts",
+      "sourceHash": "617486cb1e4f08d5f810917b7c6cba4e39100cf9a01dd3ade266c35642b0f638"
+    },
+    {
+      "id": "content.stories.additional",
+      "source": "apps/desktop/src/renderer/pages/lobby/features/bookcase/additionalStoryArticles.ts",
+      "translation": "apps/desktop/src/renderer/pages/lobby/features/bookcase/storyContent.en-US.ts",
+      "sourceHash": "04bb8fef130aa849b6693f1f2649cfe174d47effb9e0ecc3c18d748b82cedd60"
+    }
+  ]
+}

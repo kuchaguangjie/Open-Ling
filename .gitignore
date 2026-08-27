@@ -1,0 +1,16 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+node_modules/
+.vite/
+dist/
+dist-electron/
+build/
+release/
+.next/
+coverage/
+*.log
+tmp/
+.playwright-cli/
+output/

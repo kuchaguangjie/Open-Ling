@@ -1,0 +1,364 @@
+.lobby-garden {
+  background-color: #6f8370;
+  color: #fffdf7;
+  height: 100%;
+  isolation: isolate;
+  overflow: hidden;
+  position: relative;
+}
+
+.lobby-garden::after {
+  background: linear-gradient(90deg, rgba(21, 33, 25, 0.35), transparent 56%, rgba(18, 26, 20, 0.1));
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+.lobby-garden::before {
+  background:
+    radial-gradient(circle at 29% 34%, rgba(240, 250, 247, 0.06), transparent 24%),
+    linear-gradient(90deg, rgba(18, 33, 28, 0.14), rgba(18, 33, 28, 0.03) 62%, rgba(18, 29, 23, 0.1));
+  content: "";
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  transition: opacity 900ms ease;
+  z-index: 1;
+}
+
+.lobby-garden-practicing::before {
+  opacity: 1;
+}
+
+.lobby-garden-practicing::after {
+  background: linear-gradient(90deg, rgba(20, 34, 27, 0.23), transparent 58%, rgba(18, 26, 20, 0.08));
+}
+
+.garden-scene-layers,
+.garden-scene-background,
+.garden-canopy,
+.garden-dapple {
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.garden-scene-layers {
+  overflow: hidden;
+  z-index: 0;
+}
+
+.garden-scene-background {
+  display: block;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: center;
+  width: 100%;
+}
+
+.garden-canopy {
+  height: auto;
+  left: calc(-2vw + (104vw - max(104vw, 184.78vh)) / 2);
+  max-width: none;
+  top: calc(-2vh + (104vh - max(58.53vw, 104vh)) / 2);
+  width: max(47.52vw, 84.44vh);
+  will-change: transform;
+  z-index: 3;
+}
+
+.garden-canopy-local-breeze {
+  animation: garden-canopy-local-breeze 9.6s cubic-bezier(0.42, 0, 0.58, 1) infinite alternate;
+  transform-origin: 16% 10%;
+}
+
+.garden-dapple {
+  animation: garden-dapple-drift 17s ease-in-out infinite alternate;
+  background:
+    radial-gradient(ellipse at 16% 13%, rgba(251, 242, 174, 0.13), transparent 29%),
+    radial-gradient(ellipse at 73% 15%, rgba(255, 246, 186, 0.08), transparent 24%);
+  opacity: 0.55;
+  z-index: 4;
+}
+
+.lobby-garden-toolbar {
+  display: flex;
+  gap: 9px;
+  left: 28px;
+  position: absolute;
+  top: 26px;
+  z-index: 5;
+}
+
+.lobby-garden-toolbar button {
+  background: rgba(39, 50, 37, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  border-radius: 4px;
+  color: #fffdf7;
+  min-height: 36px;
+  padding: 6px 10px;
+  text-align: center;
+  transition: background 170ms ease, border-color 170ms ease, box-shadow 170ms ease, transform 170ms ease;
+}
+
+.lobby-garden-toolbar button:hover,
+.lobby-garden-toolbar button:focus-visible {
+  background: rgba(226, 211, 171, 0.88);
+  border-color: rgba(113, 75, 36, 0.62);
+  box-shadow: inset 4px 0 0 #7f946f, 0 4px 10px rgba(67, 43, 22, 0.1);
+  transform: translateX(2px);
+}
+
+.lobby-garden-copy {
+  bottom: 10%;
+  left: 7%;
+  max-width: 520px;
+  position: absolute;
+  text-shadow: 0 3px 12px rgba(20, 29, 21, 0.4);
+  z-index: 4;
+}
+
+.lobby-garden-copy p {
+  color: #dbe5d5;
+  font-size: 13px;
+  margin: 0 0 10px;
+}
+
+.lobby-garden-copy h1 {
+  font-family: var(--font-letter);
+  font-size: clamp(28px, 3vw, 48px);
+  font-weight: 400;
+  line-height: 1.25;
+  margin: 0 0 12px;
+}
+
+.lobby-garden-copy span {
+  display: block;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.lobby-garden-entry {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.lobby-garden-entry button {
+  backdrop-filter: blur(12px) saturate(1.08);
+  background: rgba(247, 250, 242, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.54);
+  border-radius: 999px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 9px 24px rgba(28, 47, 36, 0.13);
+  color: #fffdf7;
+  min-height: 42px;
+  padding: 8px 18px;
+  text-shadow: 0 2px 8px rgba(20, 29, 21, 0.42);
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.lobby-garden-entry button:hover,
+.lobby-garden-entry button:focus-visible {
+  background: rgba(239, 246, 230, 0.3);
+  border-color: rgba(255, 255, 255, 0.78);
+  transform: translateY(-1px);
+}
+
+.garden-practice {
+  inset: 0;
+  position: absolute;
+  z-index: 4;
+}
+
+.garden-breathing-aura {
+  --garden-breath-duration: 5s;
+  align-items: center;
+  aspect-ratio: 1;
+  background:
+    radial-gradient(circle at 46% 40%, rgba(247, 255, 250, 0.4), rgba(180, 224, 207, 0.21) 58%, rgba(62, 124, 104, 0.18));
+  backdrop-filter: blur(3px) saturate(1.08);
+  border: 1.5px solid rgba(242, 255, 248, 0.8);
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 44px rgba(230, 251, 240, 0.2),
+    inset 0 0 0 1px rgba(73, 141, 118, 0.2),
+    0 0 54px rgba(192, 235, 216, 0.34);
+  display: flex;
+  filter: brightness(1);
+  justify-content: center;
+  left: 33%;
+  opacity: 0.9;
+  position: absolute;
+  top: 37%;
+  transform: translate(-50%, -50%) scale(0.93);
+  width: clamp(320px, 24vw, 400px);
+  will-change: transform;
+}
+
+.garden-breathing-inner-glow {
+  background: radial-gradient(circle, rgba(244, 255, 248, 0.2), rgba(206, 241, 225, 0.06) 52%, transparent 72%);
+  border-radius: 50%;
+  inset: 10%;
+  pointer-events: none;
+  position: absolute;
+}
+
+.garden-breathing-aura p {
+  color: rgba(255, 255, 250, 0.94);
+  font-family: var(--font-letter);
+  font-size: clamp(30px, 2.6vw, 44px);
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  margin: 0;
+  position: relative;
+  text-shadow: 0 3px 18px rgba(25, 48, 40, 0.46);
+  transform: translateX(0.06em);
+  z-index: 1;
+}
+
+.garden-practice-inhale .garden-breathing-aura {
+  animation: garden-circle-inhale var(--garden-breath-duration) cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
+}
+
+.garden-practice-exhale .garden-breathing-aura {
+  animation: garden-circle-exhale var(--garden-breath-duration) cubic-bezier(0.45, 0.05, 0.55, 0.95) forwards;
+}
+
+.garden-practice-paused .garden-breathing-aura {
+  animation-play-state: paused;
+}
+
+.garden-mindfulness-guidance {
+  color: rgba(255, 254, 248, 0.9);
+  font-size: clamp(14px, 1.1vw, 17px);
+  left: 33%;
+  letter-spacing: 0.04em;
+  margin: 0;
+  max-width: min(440px, 34vw);
+  position: absolute;
+  text-align: center;
+  text-shadow: 0 3px 14px rgba(21, 40, 33, 0.58);
+  top: calc(37% + clamp(180px, 13vw, 216px));
+  transform: translateX(-50%);
+  width: max-content;
+  animation: garden-guidance-appear 1400ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.garden-practice-controls {
+  align-items: center;
+  backdrop-filter: blur(13px) saturate(1.06);
+  background: rgba(28, 45, 37, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  bottom: 4.5%;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 10px 30px rgba(17, 32, 25, 0.12);
+  display: flex;
+  gap: 5px;
+  left: 4%;
+  padding: 4px 8px;
+  position: absolute;
+}
+
+.garden-practice-controls button {
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  color: rgba(255, 254, 249, 0.91);
+  min-height: 38px;
+  padding: 6px 13px;
+  text-shadow: 0 2px 9px rgba(21, 37, 31, 0.45);
+  transition: background 170ms ease, color 170ms ease;
+}
+
+.garden-practice-controls button:hover,
+.garden-practice-controls button:focus-visible {
+  background: rgba(244, 250, 239, 0.16);
+  color: #fff;
+}
+
+.garden-practice-controls > span {
+  background: rgba(255, 255, 255, 0.24);
+  height: 18px;
+  width: 1px;
+}
+
+@keyframes garden-circle-inhale {
+  from {
+    transform: translate(-50%, -50%) scale(0.93);
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1.04);
+  }
+}
+
+@keyframes garden-circle-exhale {
+  from {
+    transform: translate(-50%, -50%) scale(1.04);
+  }
+  to {
+    transform: translate(-50%, -50%) scale(0.93);
+  }
+}
+
+@keyframes garden-guidance-appear {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 5px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes garden-canopy-local-breeze {
+  from { transform: translate3d(-4px, 2px, 0) rotate(-0.12deg); }
+  to { transform: translate3d(5px, -2px, 0) rotate(0.14deg); }
+}
+
+@keyframes garden-dapple-drift {
+  from { opacity: 0.4; }
+  to { opacity: 0.6; }
+}
+
+@media (max-width: 760px) {
+  .lobby-garden-toolbar { left: 18px; top: 18px; }
+  .lobby-garden-copy { bottom: 7%; left: 6%; max-width: min(88%, 460px); }
+  .garden-breathing-aura {
+    left: 50%;
+    top: 38%;
+    width: min(78vw, 380px);
+  }
+  .garden-mindfulness-guidance {
+    left: 50%;
+    max-width: calc(100% - 36px);
+    top: calc(38% + min(43vw, 205px));
+  }
+  .garden-practice-controls {
+    bottom: 3.5%;
+    left: 50%;
+    max-width: calc(100% - 24px);
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .garden-canopy,
+  .garden-dapple,
+  .garden-breathing-aura,
+  .garden-mindfulness-guidance {
+    animation: none;
+  }
+
+  .garden-breathing-aura {
+    opacity: 0.88;
+    transform: translate(-50%, -50%) scale(0.98);
+  }
+  .lobby-garden-toolbar button,
+  .lobby-garden::before { transition: none; }
+}

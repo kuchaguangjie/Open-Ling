@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>群心心理工作室 · 三面板统一方案</title>
+  <style>
+    :root {
+      --ink: #403226;
+      --muted: #786b58;
+      --sage: #687d63;
+      --sage-deep: #50664d;
+      --sage-soft: #dce4d0;
+      --gold-line: rgba(157, 119, 66, .42);
+      --paper: #f6ecd3;
+      --paper-light: #fff9ea;
+      --shadow: 0 28px 80px rgba(36, 22, 13, .42);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      background: #55412e url("../../../assets/runtime/lobby/waiting-room/redesign/waiting-room-warm-crisp-final-v4.png") center / cover no-repeat;
+      color: var(--ink);
+      font-family: "Noto Serif SC", "Songti SC", "STSong", serif;
+      overflow: hidden;
+    }
+    body::before { background: rgba(41, 29, 20, .54); content: ""; inset: 0; position: fixed; backdrop-filter: blur(5px); }
+    button, input { font: inherit; }
+    .workspace { align-items: center; display: flex; inset: 0; justify-content: center; padding: 22px; position: fixed; }
+    .panel {
+      filter: drop-shadow(var(--shadow));
+      height: min(92vh, 828px);
+      max-width: 1410px;
+      position: relative;
+      width: min(96vw, 1410px);
+    }
+    .wood-art { height: 100%; inset: 0; object-fit: fill; position: absolute; width: 100%; }
+    .paper {
+      background:
+        radial-gradient(circle at 20% 22%, rgba(255,255,255,.34), transparent 30%),
+        radial-gradient(circle at 78% 74%, rgba(205,166,99,.08), transparent 32%),
+        repeating-linear-gradient(0deg, rgba(110,77,44,.018) 0 1px, transparent 1px 5px),
+        var(--paper);
+      border-radius: 23px;
+      inset: 31px 34px 34px;
+      overflow: hidden;
+      position: absolute;
+    }
+    .paper::before, .paper::after { border: 1px solid var(--gold-line); border-radius: 17px; content: ""; inset: 20px; pointer-events: none; position: absolute; z-index: 3; }
+    .paper::after { border-color: rgba(126, 91, 51, .17); inset: 25px; }
+    .brand {
+      align-items: center; display: flex; gap: 15px; left: 66px; position: absolute; top: 50px; z-index: 5;
+    }
+    .brand img { height: 45px; object-fit: contain; width: 92px; }
+    .brand-copy { border-left: 1px solid rgba(122,85,45,.25); padding-left: 15px; }
+    .brand-name { font-size: 18px; letter-spacing: .13em; margin: 0; }
+    .brand-sub { color: var(--muted); font-family: "Noto Sans SC", sans-serif; font-size: 11px; letter-spacing: .22em; margin: 5px 0 0; }
+    .close { align-items: center; background: #fff8e7; border: 1px solid rgba(150,110,59,.55); border-radius: 50%; box-shadow: 0 6px 14px rgba(65,43,22,.18); color: #67492f; display: flex; font-family: Arial, sans-serif; font-size: 34px; height: 52px; justify-content: center; padding: 0 0 4px; position: absolute; right: 52px; top: 43px; width: 52px; z-index: 6; }
+    .page-title { left: 68px; position: absolute; top: 116px; z-index: 4; }
+    .page-title h1 { font-size: 37px; font-weight: 600; letter-spacing: .04em; margin: 0; }
+    .page-title p { color: var(--muted); font-size: 15px; letter-spacing: .08em; margin: 8px 0 0; }
+    .content { bottom: 54px; left: 64px; position: absolute; right: 64px; top: 188px; z-index: 4; }
+
+    /* letters */
+    .letters-tools { align-items: center; display: flex; gap: 20px; justify-content: flex-end; left: 520px; position: absolute; right: 116px; top: 73px; z-index: 5; }
+    .letters > .brand, .resources > .brand, .stories > .brand { display: none; }
+    .letters .page-title { top: 48px; }
+    .letters .content { bottom: 88px; top: 136px; }
+    .letters .letters-tools { top: 53px; }
+    .search { background: rgba(255,250,237,.82); border: 1px solid rgba(142,108,67,.28); border-radius: 999px; color: var(--muted); height: 44px; padding: 0 22px; width: 360px; }
+    .refresh { color: var(--muted); font-family: sans-serif; font-size: 14px; }
+    .filters { align-items: center; border-bottom: 1px solid rgba(126,91,51,.16); display: flex; gap: 14px; height: 52px; }
+    .chip { align-items: center; border: 1px solid transparent; border-radius: 11px; color: #5e6353; display: flex; font-family: sans-serif; font-size: 13px; gap: 8px; padding: 7px 13px; }
+    .chip.active { background: var(--sage-soft); border-color: rgba(86,111,80,.22); }
+    .avatar { background: #bfa17e; border-radius: 50%; height: 28px; width: 28px; }
+    .letter-grid { display: grid; gap: 24px; grid-template-columns: 34% 1fr; height: calc(100% - 64px); padding-top: 17px; }
+    .letter-list { display: grid; gap: 12px; grid-auto-rows: minmax(108px, 1fr); overflow: hidden; }
+    .letter-row { align-items: center; background: rgba(255,250,237,.64); border: 1px solid rgba(129,94,53,.14); border-radius: 13px; display: grid; gap: 15px; grid-template-columns: 92px 1fr; padding: 13px 16px; position: relative; }
+    .letter-row.active { background: linear-gradient(135deg, rgba(220,228,208,.9), rgba(242,234,210,.76)); border-color: rgba(79,105,74,.46); box-shadow: inset 4px 0 0 var(--sage); }
+    .letter-row img { height: 67px; object-fit: contain; width: 88px; }
+    .letter-row h3 { font-size: 17px; margin: 0 0 7px; }
+    .letter-row p { color: var(--muted); font-family: sans-serif; font-size: 12px; line-height: 1.6; margin: 0; }
+    .status { background: #e2ead6; border-radius: 999px; color: var(--sage-deep); font-family: sans-serif; font-size: 10px; padding: 4px 8px; position: absolute; right: 11px; top: 10px; }
+    .letter-paper { background: #fff9e9 url("../../../assets/runtime/session-letter/letter-paper-texture-wide-v3.jpg") center / cover; border: 1px solid rgba(153,113,62,.24); border-radius: 14px; box-shadow: 0 10px 28px rgba(82,55,27,.08); overflow: hidden; padding: 32px 52px; position: relative; }
+    .letter-paper::after { background: url("../../../assets/brand/sidebar-plant.png") center / contain no-repeat; bottom: -22px; content: ""; height: 210px; opacity: .055; position: absolute; right: -24px; width: 180px; }
+    .letter-paper h2 { font-size: 28px; margin: 0 0 8px; }
+    .letter-meta { align-items: center; border-bottom: 1px solid rgba(136,101,60,.2); color: var(--muted); display: flex; font-family: sans-serif; font-size: 12px; justify-content: space-between; padding-bottom: 14px; }
+    .letter-body { font-size: 16px; line-height: 2; padding-top: 13px; }
+    .letter-body p { margin: 0 0 12px; text-indent: 2em; }
+    .letter-body p:first-child { text-indent: 0; }
+    .primary { background: var(--sage); border: 1px solid var(--sage-deep); border-radius: 7px; color: #fffaf0; display: block; font-family: sans-serif; margin: 16px auto 0; padding: 10px 28px; }
+    .letters-footer { align-items: center; bottom: 38px; display: flex; justify-content: space-between; left: 67px; position: absolute; right: 67px; z-index: 5; }
+    .studio-signature { align-items: center; display: flex; gap: 11px; }
+    .studio-signature img { height: 25px; object-fit: contain; width: 52px; }
+    .studio-signature strong { font-size: 13px; font-weight: 500; letter-spacing: .12em; }
+    .studio-signature small { color: var(--muted); display: block; font-family: sans-serif; font-size: 9px; letter-spacing: .18em; margin-top: 2px; }
+    .letters-footer > p { color: var(--muted); font-family: sans-serif; font-size: 10px; margin: 0; }
+
+    /* resources */
+    .resource-title { left: 50%; text-align: center; top: 62px; transform: translateX(-50%); }
+    .resource-title h1 { font-size: 40px; letter-spacing: .16em; }
+    .resources .content { bottom: 88px; left: 17%; right: 13%; top: 170px; }
+    .resources-footer { align-items: center; bottom: 38px; display: flex; justify-content: space-between; left: 67px; position: absolute; right: 67px; z-index: 5; }
+    .resources-footer > p { color: var(--muted); font-family: sans-serif; font-size: 10px; margin: 0; }
+    .file-list { display: grid; gap: 28px; height: 100%; }
+    .file-card { align-items: center; background: rgba(255,249,234,.74); border: 1px solid rgba(145,104,58,.27); border-radius: 12px; box-shadow: 0 9px 18px rgba(83,56,30,.06); display: grid; grid-template-columns: 120px 1fr 150px; min-height: 116px; padding: 18px 28px; position: relative; }
+    .file-card::before { background: #aeb497; border-radius: 12px 0 0 12px; content: ""; inset: 9px auto 9px -12px; position: absolute; width: 18px; z-index: -1; }
+    .file-card::after { background: rgba(255,245,222,.9); border: 1px solid rgba(153,113,62,.18); border-bottom: 0; border-radius: 14px 16px 0 0; content: ""; height: 25px; left: 5px; position: absolute; top: -20px; width: 220px; z-index: -1; }
+    .file-card img { height: 76px; object-fit: contain; width: 80px; }
+    .file-copy { border-left: 1px solid rgba(151,113,65,.24); padding-left: 34px; }
+    .file-copy h2 { font-size: 27px; margin: 0 0 8px; }
+    .file-copy p { color: var(--muted); font-size: 15px; margin: 0; }
+    .view { border-left: 1px solid rgba(151,113,65,.24); color: var(--sage); font-size: 20px; padding: 16px 0 16px 40px; }
+
+    /* stories */
+    .stories .brand { top: 46px; }
+    .stories .content { bottom: 44px; display: grid; grid-template-columns: 29% 1fr; left: 48px; right: 48px; top: 70px; }
+    .story-aside { border-right: 1px solid rgba(126,91,51,.2); padding: 53px 36px 16px 24px; position: relative; }
+    .story-aside h1 { font-size: 36px; margin: 0 0 42px; }
+    .story-aside .intro { color: var(--muted); font-size: 15px; line-height: 1.9; margin-bottom: 30px; }
+    .categories { display: grid; gap: 11px; }
+    .category { align-items: center; background: rgba(255,249,234,.52); border: 1px solid rgba(130,95,54,.12); border-radius: 4px 11px 11px 4px; display: flex; font-size: 16px; gap: 16px; padding: 15px 18px; }
+    .category.active { background: var(--sage); border-color: var(--sage-deep); color: #fffaf0; }
+    .category b { color: #bca16e; font-size: 12px; }
+    .story-note { bottom: 67px; color: var(--muted); font-family: sans-serif; font-size: 10px; line-height: 1.7; position: absolute; width: 270px; }
+    .story-signature { border-top: 1px solid rgba(126,91,51,.16); bottom: 10px; left: 24px; padding-top: 13px; position: absolute; right: 34px; }
+    .story-signature .studio-signature img { height: 24px; width: 50px; }
+    .library { padding: 78px 20px 0 48px; }
+    .library-head { align-items: end; border-bottom: 1px solid rgba(126,91,51,.17); display: flex; justify-content: space-between; margin-bottom: 19px; padding-bottom: 13px; }
+    .library-head small { color: var(--muted); font-family: sans-serif; }
+    .library-head h2 { font-size: 29px; margin: 4px 0 0; }
+    .story-list { display: grid; gap: 18px; }
+    .story-card { background: rgba(255,249,234,.7); border: 1px solid rgba(128,93,53,.18); border-radius: 14px; display: grid; grid-template-columns: 33% 1fr; height: 198px; overflow: hidden; }
+    .story-card img { height: 100%; object-fit: cover; width: 100%; }
+    .story-copy { align-content: center; padding: 21px 30px; }
+    .story-copy small { color: var(--sage); font-family: sans-serif; }
+    .story-copy h3 { font-size: 25px; margin: 10px 0; }
+    .story-copy p { color: var(--muted); font-size: 14px; line-height: 1.8; margin: 0; }
+    .story-copy span { color: var(--sage); display: block; font-family: sans-serif; font-size: 12px; margin-top: 13px; }
+
+    .switcher { bottom: 10px; display: none; gap: 7px; left: 50%; position: fixed; transform: translateX(-50%); z-index: 20; }
+    .switcher a { background: rgba(44,31,23,.78); border: 1px solid rgba(255,241,208,.28); border-radius: 999px; color: #fff5df; font-family: sans-serif; font-size: 11px; padding: 6px 12px; text-decoration: none; }
+    @media (max-width: 1100px) {
+      .panel { height: 94vh; width: 98vw; }
+      .paper { inset: 25px 27px 28px; }
+      .brand { left: 52px; top: 43px; transform: scale(.88); transform-origin: left top; }
+      .close { right: 39px; top: 35px; }
+      .page-title { left: 53px; top: 104px; }
+      .content { bottom: 42px; left: 51px; right: 51px; top: 171px; }
+      .letters-tools { left: 420px; right: 98px; top: 62px; }
+      .letters .page-title { top: 42px; }
+      .letters .content { bottom: 79px; top: 126px; }
+      .letters .letters-tools { top: 48px; }
+      .letters-footer { bottom: 33px; left: 53px; right: 53px; }
+      .search { width: 285px; }
+      .letter-grid { grid-template-columns: 38% 1fr; }
+      .letter-paper { padding: 27px 35px; }
+      .resource-title { top: 55px; }
+      .resources .content { bottom: 79px; left: 12%; right: 10%; top: 158px; }
+      .resources-footer { bottom: 33px; left: 53px; right: 53px; }
+      .file-card { grid-template-columns: 90px 1fr 115px; }
+      .file-card img { height: 62px; width: 62px; }
+      .stories .content { grid-template-columns: 31% 1fr; left: 42px; right: 42px; top: 62px; }
+      .story-aside { padding-left: 16px; padding-right: 24px; }
+      .library { padding-left: 30px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="workspace" id="workspace"></main>
+  <nav class="switcher">
+    <a href="?panel=letters">沙发来信</a><a href="?panel=resources">资料桌</a><a href="?panel=stories">书架故事角</a>
+  </nav>
+  <template id="shell">
+    <section class="panel">
+      <img class="wood-art" alt="" src="../../../assets/runtime/lobby/resource-table/frame/resource-table-frame-natural-corners-clean-v6.png" />
+      <div class="paper">
+        <header class="brand"><img alt="群心心理工作室 Logo" src="../../../assets/runtime/lobby/resource-table/brand/qunxin-studio-logo-final-v1.png" /><div class="brand-copy"><p class="brand-name">群心心理工作室</p><p class="brand-sub">QUNXIN PSYCHOLOGY STUDIO</p></div></header>
+        <button class="close" aria-label="关闭">×</button>
+        <div data-slot="view"></div>
+      </div>
+    </section>
+  </template>
+  <script>
+    const panel = new URLSearchParams(location.search).get('panel') || 'letters';
+    const root = document.querySelector('#workspace');
+    const shell = document.querySelector('#shell').content.cloneNode(true);
+    const paper = shell.querySelector('.paper');
+    const slot = shell.querySelector('[data-slot="view"]');
+    const envelope = '../../../assets/runtime/session-letter/envelope-closed-transparent.png';
+    const icons = '../../../assets/runtime/lobby/resource-table/icons/';
+    const stories = '../../../assets/runtime/lobby/story-corner/';
+    const views = {
+      letters: `
+        <div class="page-title"><h1>咨询师的信</h1><p>坐下来，慢慢打开</p></div>
+        <div class="letters-tools"><input class="search" value="" placeholder="搜索来信、会谈或咨询师"/><span class="refresh">刷新</span></div>
+        <div class="content"><div class="filters"><span class="chip active">✉ 全部咨询师</span><span class="chip"><i class="avatar"></i>程灵</span></div>
+          <div class="letter-grid"><section class="letter-list">
+            <article class="letter-row active"><img src="${envelope}"/><div><h3>与程灵的会谈 · Session 8</h3><p>程灵<br/>2026-07-12</p></div><span class="status">已写好</span></article>
+            <article class="letter-row"><img src="${envelope}"/><div><h3>与程灵的会谈 · Session 10</h3><p>程灵<br/>2026-07-09</p></div><span class="status">已写好</span></article>
+            <article class="letter-row"><img src="${envelope}"/><div><h3>与周舟的会谈 · Session 3</h3><p>周舟<br/>2026-07-02</p></div><span class="status">已写好</span></article>
+          </section><article class="letter-paper"><h2>与程灵的会谈 · Session 8</h2><div class="letter-meta"><span>程灵</span><time>2026年7月12日</time></div><div class="letter-body"><p>XQ：</p><p>读你发来的这段话时，我好像能感觉到一种很深的疲惫——不是那种做了很多事之后的累，而是某种被卡住了很久、却找不到出口的疲惫。</p><p>你用了“闷”“堵着”“出不来”这些词。我猜那可能不只是心情低落，更像是身体也替心里在承受什么。</p><p>有些话没有赶上当时，也仍然可以找到诚实的去处。你不需要急着把它说得完整。</p></div><button class="primary">打开完整信件</button></article></div>
+        </div><footer class="letters-footer"><div class="studio-signature"><img src="../../../assets/runtime/lobby/resource-table/brand/qunxin-studio-logo-final-v1.png"/><div><strong>群心心理工作室</strong><small>PRIVATE LETTER ARCHIVE</small></div></div><p>来信仅保存在你的本地设备中</p></footer>`,
+      resources: `
+        <div class="page-title resource-title"><h1>资料桌</h1><p>工作室使用资料</p></div>
+        <div class="content"><section class="file-list">
+          <article class="file-card"><img src="${icons}resource-help-icon-final-v1.png"/><div class="file-copy"><h2>使用帮助</h2><p>了解如何开始、继续或结束咨询</p></div><div class="view">查看 ›</div></article>
+          <article class="file-card"><img src="${icons}resource-safety-icon-final-v1.png"/><div class="file-copy"><h2>使用与安全边界</h2><p>了解 AI 能力边界与紧急情况下的现实求助方式</p></div><div class="view">查看 ›</div></article>
+          <article class="file-card"><img src="${icons}resource-consent-icon-final-v1.png"/><div class="file-copy"><h2>知情说明</h2><p>重新查看完整说明</p></div><div class="view">查看 ›</div></article>
+        </section></div><footer class="resources-footer"><div class="studio-signature"><img src="../../../assets/runtime/lobby/resource-table/brand/qunxin-studio-logo-final-v1.png"/><div><strong>群心心理工作室</strong><small>STUDIO REFERENCE DESK</small></div></div><p>使用说明 · 安全边界 · 知情资料</p></footer>`,
+      stories: `
+        <div class="content"><aside class="story-aside"><h1>故事角</h1><p class="intro">不用从头读起。选一篇此刻愿意停留片刻的短文，就好。</p><div class="categories"><div class="category active"><b>01</b>人与人之间</div><div class="category"><b>02</b>和自己相处</div><div class="category"><b>03</b>生活的转弯处</div></div><p class="story-note">这些文章由工作室整理，不读取你的会谈内容。</p><div class="story-signature"><div class="studio-signature"><img src="../../../assets/runtime/lobby/resource-table/brand/qunxin-studio-logo-final-v1.png"/><div><strong>群心心理工作室</strong><small>STUDIO STORY COLLECTION</small></div></div></div></aside>
+          <section class="library"><header class="library-head"><div><small>短篇阅读</small><h2>人与人之间</h2></div><small>2 篇</small></header><div class="story-list">
+            <article class="story-card"><img src="${stories}after-the-misunderstanding.webp"/><div class="story-copy"><small>短读 · 约 4 分钟</small><h3>误解之后</h3><p>一句话停在两个人之间很久，直到他们愿意重新坐下来。</p><span>打开阅读 →</span></div></article>
+            <article class="story-card"><img src="${stories}words-that-did-not-come.webp"/><div class="story-copy"><small>短读 · 约 3 分钟</small><h3>说不出口的话</h3><p>有些话没有赶上当时，也仍然可以找到诚实的去处。</p><span>打开阅读 →</span></div></article>
+          </div></section>
+        </div>`
+    };
+    paper.classList.add(panel === 'stories' ? 'stories' : panel);
+    slot.innerHTML = views[panel] || views.letters;
+    root.append(shell);
+  </script>
+</body>
+</html>

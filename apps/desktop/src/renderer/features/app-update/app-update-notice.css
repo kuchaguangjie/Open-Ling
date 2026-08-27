@@ -1,0 +1,55 @@
+.app-update-notice {
+  background: rgba(255, 252, 243, 0.97);
+  border: 1px solid rgba(126, 151, 119, 0.62);
+  border-radius: 12px;
+  box-shadow: 0 16px 38px rgba(61, 74, 55, 0.18);
+  color: #3f4d3b;
+  display: grid;
+  gap: 8px;
+  max-width: min(360px, calc(100vw - 32px));
+  padding: 16px 42px 16px 18px;
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  z-index: 120;
+}
+
+.app-update-notice strong {
+  font-family: var(--font-ui);
+  font-size: 15px;
+}
+
+.app-update-notice p {
+  color: #655e50;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.app-update-notice-close {
+  background: transparent;
+  border: 0;
+  color: #7d7465;
+  font-size: 20px;
+  line-height: 1;
+  padding: 5px;
+  position: absolute;
+  right: 8px;
+  top: 7px;
+}
+
+.app-update-notice-link {
+  background: #6d876e;
+  border: 0;
+  border-radius: 8px;
+  color: #fffdf7;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  justify-self: start;
+  padding: 8px 12px;
+}
+
+.app-update-notice-link:hover {
+  background: #5d775f;
+}

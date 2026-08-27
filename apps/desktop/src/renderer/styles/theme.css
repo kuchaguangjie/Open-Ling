@@ -1,0 +1,50 @@
+@font-face {
+  font-display: swap;
+  font-family: "LXGW ZhenKai";
+  font-style: normal;
+  font-weight: 400;
+  src: url("../../../../../assets/fonts/lxgw-zhenkai/LXGWZhenKaiGB-Regular.ttf") format("truetype");
+}
+
+:root {
+  color-scheme: light;
+  --bg: #faf2e6;
+  --surface: rgba(255, 253, 248, 0.78);
+  --surface-strong: rgba(255, 254, 250, 0.94);
+  --line: rgba(128, 112, 92, 0.13);
+  --text: #302c27;
+  --muted: #7d7468;
+  --soft: #f4eadb;
+  --accent: #98aaa2;
+  --accent-dark: #687f76;
+  --danger: #94605a;
+  --shadow: 0 20px 58px rgba(105, 86, 62, 0.1);
+  --radius: 8px;
+  /* Shared motion language: short feedback, calm surfaces, and a slightly
+     longer page reveal. Keep the distance small so movement never competes
+     with the reading-oriented content or the counselor portrait layers. */
+  --motion-duration-fast: 140ms;
+  --motion-duration-content: 220ms;
+  --motion-duration-surface: 210ms;
+  --motion-duration-page: 280ms;
+  --motion-ease-standard: cubic-bezier(0.22, 0.72, 0.32, 1);
+  --motion-ease-emphasized: cubic-bezier(0.2, 0.8, 0.25, 1);
+  --motion-distance-surface: 8px;
+  --motion-distance-page: 12px;
+  --motion-scale-surface: 0.99;
+  --font-ui: "Noto Serif SC", serif;
+  --font-title: "Noto Serif SC", serif;
+  --font-letter: "LXGW ZhenKai", "Noto Serif SC", serif;
+  --font-quote: "LXGW ZhenKai", "Noto Serif SC", serif;
+  --font-number: "Noto Serif SC", serif;
+  --reading-body-font-size: 16px;
+  --reading-copy-font-size: 15px;
+  --reading-message-font-size: 16px;
+  --reading-letter-font-size: 16px;
+  --reading-letter-reader-font-size: 17px;
+  --reading-body-line-height: 1.7;
+  --reading-message-line-height: 1.72;
+  --reading-letter-line-height: 1.92;
+  --reading-letter-reader-line-height: 1.95;
+  font-family: var(--font-ui);
+}

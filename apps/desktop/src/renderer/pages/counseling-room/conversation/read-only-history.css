@@ -1,0 +1,104 @@
+.consultation-history-layout {
+  background:
+    linear-gradient(180deg, rgba(54, 40, 26, 0.18), rgba(54, 40, 26, 0.28)),
+    var(--consultation-history-background) center / cover no-repeat,
+    #d4c2a7;
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  padding: clamp(18px, 4vw, 48px);
+}
+
+.consultation-archive-layout {
+  background: #d4c2a7;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 278px minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  padding: 18px;
+  position: relative;
+}
+
+.consultation-archive-layout.sidebar-collapsed { grid-template-columns: minmax(0, 1fr); }
+.consultation-archive-layout > .consultation-history-layout { padding: 0; }
+
+.consultation-archive-layout.sidebar-collapsed .consultation-history-panel {
+  margin-left: 72px;
+  max-width: min(1100px, calc(100% - 72px));
+  width: calc(100% - 72px);
+}
+
+.consultation-archive-layout.sidebar-collapsed.history-open .consultation-history-panel {
+  /* Widen into the gap beside the history drawer (drawer ends ~380). */
+  margin-left: 250px;
+  margin-right: 0;
+  max-width: none;
+  width: calc(100% - 250px);
+}
+
+.consultation-history-panel {
+  background: rgba(255, 251, 242, 0.94);
+  border: 1px solid rgba(107, 84, 54, 0.2);
+  border-radius: 20px;
+  box-shadow: 0 26px 70px rgba(51, 35, 18, 0.22);
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  margin: 0 auto;
+  max-width: 980px;
+  min-height: 0;
+  overflow: hidden;
+  padding: clamp(18px, 3vw, 34px);
+  width: 100%;
+}
+
+.consultation-history-header {
+  align-items: center;
+  border-bottom: 1px solid rgba(113, 90, 61, 0.16);
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding-bottom: 16px;
+}
+
+.consultation-history-header p { color: #8a6b47; margin: 0 0 4px; }
+.consultation-history-header h1 { color: #443425; font-size: 24px; margin: 0; }
+.consultation-history-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.consultation-history-actions button {
+  background: rgba(255, 252, 244, 0.8);
+  border: 1px solid rgba(105, 81, 52, 0.24);
+  border-radius: 999px;
+  color: #5f4934;
+  min-height: 40px;
+  padding: 8px 16px;
+}
+.consultation-ending-status { color: #715b43; margin: 16px 0 0; }
+.consultation-history-error { color: #9c4138; margin: 14px 0 0; }
+.consultation-history-panel .message-stream { min-height: 0; overflow-y: auto; }
+
+@media (max-width: 900px) {
+  .consultation-archive-layout {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 8px;
+  }
+
+  .consultation-archive-layout > .session-sidebar {
+    display: none;
+  }
+
+  .consultation-history-layout {
+    padding: 8px;
+  }
+
+  .consultation-history-panel {
+    border-radius: 12px;
+    padding: 14px;
+  }
+
+  .consultation-history-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,23 @@
+.lobby-hotspot { background: transparent; border: 0; border-radius: 4px; box-shadow: none; cursor: pointer; outline: 0; position: absolute; z-index: 4; }
+.lobby-hotspot:focus-visible { outline: none; }
+.lobby-hotspot:disabled { cursor: default; }
+.lobby-hotspot:disabled .lobby-hotspot-beacon, .lobby-hotspot:disabled .lobby-hotspot-label { display: none; }
+.lobby-hotspot-beacon { animation: lobby-beacon-breathe 2.8s ease-in-out infinite; background: #fff1bd; border: 1px solid rgba(255, 248, 214, 0.96); border-radius: 50%; box-shadow: 0 0 0 4px rgba(255, 226, 145, 0.16), 0 0 18px 7px rgba(255, 220, 126, 0.48); height: 10px; left: 50%; opacity: 0; pointer-events: none; position: absolute; top: 50%; transform: translate(-50%, -50%) scale(0.8); transition: opacity 180ms ease, transform 220ms ease; width: 10px; }
+.lobby-stage.is-dialogue-active .lobby-hotspot-beacon { animation-play-state: paused; }
+.lobby-hotspot-label { background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), transparent 28%, rgba(0, 0, 0, 0.08)), #5a3d27; border: 1px solid rgba(245, 210, 142, 0.72); border-radius: 3px; box-shadow: 0 5px 14px rgba(40, 26, 15, 0.26), inset 0 0 0 1px rgba(255, 244, 210, 0.08); color: #fff0c8; font-size: 12px; left: 50%; line-height: 1; opacity: 0; padding: 6px 9px 5px; pointer-events: none; position: absolute; top: 50%; transform: translate(-50%, 14px); transition: opacity 180ms ease, transform 220ms ease; white-space: nowrap; }
+.lobby-hotspot:hover .lobby-hotspot-beacon, .lobby-hotspot:focus-visible .lobby-hotspot-beacon { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.lobby-hotspot:hover .lobby-hotspot-label, .lobby-hotspot:focus-visible .lobby-hotspot-label { opacity: 1; transform: translate(-50%, 20px); }
+.lobby-hotspot-renxin { height: 24%; left: 28.5%; top: 18%; width: 17%; }
+.lobby-hotspot-bookcase { height: 51%; left: 47.5%; top: 6%; width: 29%; }
+.lobby-hotspot-photo { height: 6%; left: 29.7%; top: 37%; width: 5%; }
+.lobby-hotspot-window { height: 61%; left: 0.8%; top: 1%; width: 21.8%; }
+.lobby-hotspot-resources { height: 26%; left: 78%; top: 54.5%; width: 20.5%; }
+.lobby-hotspot-letters { height: 28%; left: 1.5%; top: 56%; width: 32%; }
+.lobby-hotspot-counselor { height: 15%; top: 30%; width: 3.8%; }
+.lobby-hotspot-counselor-chengling { left: 82.4%; }
+.lobby-hotspot-counselor-zhouzhou { left: 78.3%; }
+.lobby-hotspot-counselor-linleshui { left: 86.6%; }
+.lobby-hotspot-renxin .lobby-hotspot-beacon, .lobby-hotspot-renxin .lobby-hotspot-label { left: 67%; top: 56%; }
+.lobby-hotspot-letters .lobby-hotspot-beacon, .lobby-hotspot-letters .lobby-hotspot-label { left: 57%; top: 43%; }
+@keyframes lobby-beacon-breathe { 0%, 100% { box-shadow: 0 0 0 4px rgba(255, 226, 145, 0.12), 0 0 13px 5px rgba(255, 220, 126, 0.38); } 50% { box-shadow: 0 0 0 6px rgba(255, 226, 145, 0.2), 0 0 22px 10px rgba(255, 220, 126, 0.58); } }
+@media (prefers-reduced-motion: reduce) { .lobby-hotspot-beacon { animation: none; } }

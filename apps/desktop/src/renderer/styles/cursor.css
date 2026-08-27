@@ -1,0 +1,124 @@
+:root {
+  --ling-cursor-default-image: url("./cursors/ling-q-arrow-default.png");
+  --ling-cursor-default: url("./cursors/ling-q-arrow-default.png") 3 3, default;
+  --ling-cursor-action: url("./cursors/ling-q-hand-action.png") 12 3, pointer;
+  --ling-cursor-pressed: url("./cursors/ling-q-hand-pressed.png") 12 4, pointer;
+  --ling-cursor-text: url("./cursors/ling-q-arrow-text.png") 16 16, text;
+}
+
+:root[data-ling-cursor-theme="b"] {
+  --ling-cursor-default-image: url("./cursors/ling-q-arrow-b-default.png");
+  --ling-cursor-default: url("./cursors/ling-q-arrow-b-default.png") 3 3, default;
+  --ling-cursor-action: url("./cursors/ling-q-hand-b-action.png") 12 3, pointer;
+  --ling-cursor-pressed: url("./cursors/ling-q-hand-b-pressed.png") 12 4, pointer;
+  --ling-cursor-text: url("./cursors/ling-q-arrow-b-text.png") 16 16, text;
+}
+
+:root[data-ling-cursor-theme="c"] {
+  --ling-cursor-default-image: url("./cursors/ling-q-arrow-c-default.png");
+  --ling-cursor-default: url("./cursors/ling-q-arrow-c-default.png") 3 3, default;
+  --ling-cursor-action: url("./cursors/ling-q-hand-c-action.png") 12 3, pointer;
+  --ling-cursor-pressed: url("./cursors/ling-q-hand-c-pressed.png") 12 4, pointer;
+  --ling-cursor-text: url("./cursors/ling-q-arrow-c-text.png") 16 16, text;
+}
+
+:root[data-ling-cursor-theme="d"] {
+  --ling-cursor-default-image: url("./cursors/ling-q-arrow-d-default.png");
+  --ling-cursor-default: url("./cursors/ling-q-arrow-d-default.png") 3 3, default;
+  --ling-cursor-action: url("./cursors/ling-q-hand-d-action.png") 12 3, pointer;
+  --ling-cursor-pressed: url("./cursors/ling-q-hand-d-pressed.png") 12 4, pointer;
+  --ling-cursor-text: url("./cursors/ling-q-arrow-d-text.png") 16 16, text;
+}
+
+:root[data-ling-cursor-theme="e"] {
+  --ling-cursor-default-image: url("./cursors/ling-q-arrow-e-default.png");
+  --ling-cursor-default: url("./cursors/ling-q-arrow-e-default.png") 3 3, default;
+  --ling-cursor-action: url("./cursors/ling-q-hand-e-action.png") 12 3, pointer;
+  --ling-cursor-pressed: url("./cursors/ling-q-hand-e-pressed.png") 12 4, pointer;
+  --ling-cursor-text: url("./cursors/ling-q-arrow-e-text.png") 16 16, text;
+}
+
+html,
+body {
+  cursor: var(--ling-cursor-default) !important;
+}
+
+/*
+ * Cursor is inherited. Keep descendants tied to their interactive parent so
+ * moving over a button's label/icon cannot switch back to the arrow.
+ */
+body * {
+  cursor: inherit !important;
+}
+
+/* Clickable surfaces use a compact theme-colored hand to make affordances explicit. */
+body :is(
+  button:not(:disabled),
+  a[href],
+  select:not(:disabled),
+  summary,
+  label[for],
+  input[type="button"]:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled),
+  input[type="range"]:not(:disabled),
+  input[type="reset"]:not(:disabled),
+  input[type="submit"]:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="link"]:not([aria-disabled="true"]),
+  [draggable="true"],
+  [data-ling-cursor="action"]
+) {
+  cursor: var(--ling-cursor-action) !important;
+}
+
+body :is(
+  button:not(:disabled):active,
+  a[href]:active,
+  select:not(:disabled):active,
+  summary:active,
+  label[for]:active,
+  input[type="button"]:not(:disabled):active,
+  input[type="checkbox"]:not(:disabled):active,
+  input[type="radio"]:not(:disabled):active,
+  input[type="range"]:not(:disabled):active,
+  input[type="reset"]:not(:disabled):active,
+  input[type="submit"]:not(:disabled):active,
+  [role="button"]:not([aria-disabled="true"]):active,
+  [role="link"]:not([aria-disabled="true"]):active,
+  [draggable="true"]:active,
+  [data-ling-cursor="action"]:active
+) {
+  cursor: var(--ling-cursor-pressed) !important;
+}
+
+/* The I-beam remains explicit and consistent on Windows and macOS. */
+body :is(
+  textarea,
+  [contenteditable="true"],
+  input:not([type]),
+  input[type="email"],
+  input[type="number"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="text"],
+  input[type="url"]
+) {
+  cursor: var(--ling-cursor-text) !important;
+}
+
+body :is(button, input, select, textarea):disabled,
+body :is([aria-disabled="true"], [data-ling-cursor="disabled"]) {
+  cursor: var(--ling-cursor-default) !important;
+}
+
+body :is(
+  [aria-busy="true"],
+  [data-ling-cursor="wait"],
+  .consultation-stage-top-action:disabled,
+  .privacy-export-grid button:disabled,
+  .consultation-entry-choice-actions button:disabled
+) {
+  cursor: var(--ling-cursor-default) !important;
+}

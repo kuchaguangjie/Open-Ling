@@ -1,0 +1,185 @@
+.startup-loading {
+  background: #eee9d9;
+  color: #514739;
+  height: 100%;
+  isolation: isolate;
+  min-height: 480px;
+  overflow: hidden;
+  position: relative;
+  transition: opacity 160ms linear;
+  width: 100%;
+}
+
+.startup-loading--exiting {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.startup-loading__background {
+  height: 100%;
+  inset: 0;
+  object-fit: cover;
+  object-position: center 52%;
+  position: absolute;
+  width: 100%;
+  z-index: -2;
+}
+
+.startup-loading__wash {
+  background:
+    radial-gradient(circle at 50% 53%, rgba(255, 251, 237, 0.17), transparent 36%),
+    linear-gradient(180deg, rgba(255, 250, 235, 0.04), rgba(242, 237, 218, 0.07));
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+}
+
+.startup-loading__center {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  left: 50%;
+  position: absolute;
+  top: 49%;
+  transform: translate(-50%, -50%);
+  width: min(92vw, 680px);
+}
+
+.startup-loading__mark {
+  aspect-ratio: 1340 / 608;
+  position: relative;
+  width: clamp(218px, 18vw, 340px);
+}
+
+.startup-loading__boat,
+.startup-loading__reflection {
+  height: 100%;
+  left: 50%;
+  object-fit: contain;
+  position: absolute;
+  width: 100%;
+}
+
+.startup-loading__boat {
+  animation: startup-loading-boat-breathe 5.8s ease-in-out infinite;
+  filter: drop-shadow(0 8px 10px rgba(91, 54, 35, 0.09));
+  top: 0;
+  transform: translateX(-50%);
+  transform-origin: 50% 72%;
+  will-change: transform;
+}
+
+.startup-loading__reflection {
+  filter: blur(3px);
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.34), transparent 72%);
+  opacity: 0.07;
+  top: clamp(76px, 10.8vh, 116px);
+  transform: translateX(-50%) scaleY(-0.42) scaleX(0.96);
+  transform-origin: center top;
+}
+
+.startup-loading__status,
+.startup-loading__atmosphere,
+.startup-loading__hint p {
+  margin: 0;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.startup-loading__status {
+  color: #51473b;
+  font-family: var(--font-ui, "Noto Serif SC", serif);
+  font-size: clamp(19px, 1.65vw, 27px);
+  font-weight: 400;
+  letter-spacing: 0.065em;
+  line-height: 1.55;
+  margin-top: clamp(12px, 1.8vh, 22px);
+  text-shadow: 0 1px 10px rgba(255, 253, 241, 0.75);
+}
+
+.startup-loading__status-copy {
+  animation: startup-loading-copy-arrive 420ms ease both;
+  display: block;
+  min-height: 1.55em;
+}
+
+.startup-loading__atmosphere {
+  animation: startup-loading-copy-arrive 1.1s ease both;
+  color: rgba(81, 71, 59, 0.82);
+  font-family: var(--font-ui, "Noto Serif SC", serif);
+  font-size: clamp(15px, 1.15vw, 19px);
+  letter-spacing: 0.035em;
+  line-height: 1.65;
+  margin-top: 10px;
+  min-height: 1.65em;
+}
+
+.startup-loading__hint {
+  bottom: clamp(40px, 8.5vh, 92px);
+  color: rgba(77, 78, 59, 0.74);
+  left: 50%;
+  opacity: 0;
+  position: absolute;
+  transform: translateX(-50%);
+  transition: opacity 1.1s ease;
+  width: min(88vw, 660px);
+}
+
+.startup-loading__hint--visible {
+  opacity: 1;
+}
+
+.startup-loading__hint-content {
+  align-items: center;
+  display: flex;
+  gap: 13px;
+  justify-content: center;
+}
+
+.startup-loading__hint-wordmark {
+  filter: opacity(0.72);
+  flex: 0 0 auto;
+  height: auto;
+  width: 52px;
+}
+
+.startup-loading__hint p {
+  animation: startup-loading-copy-arrive 1.1s ease both;
+  font-family: var(--font-ui, "Noto Serif SC", serif);
+  font-size: clamp(13px, 1vw, 16px);
+  letter-spacing: 0.025em;
+  line-height: 1.6;
+}
+
+@keyframes startup-loading-boat-breathe {
+  0%, 100% { transform: translateX(-50%) translateY(-5px) rotate(-0.7deg) scale(0.997); }
+  50% { transform: translateX(-50%) translateY(5px) rotate(0.7deg) scale(1.003); }
+}
+
+@keyframes startup-loading-copy-arrive {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 1180px), (max-height: 760px) {
+  .startup-loading__center { top: 47%; }
+  .startup-loading__mark { width: clamp(198px, 22vw, 250px); }
+  .startup-loading__reflection { top: 58%; }
+  .startup-loading__hint { bottom: 38px; }
+}
+
+@media (max-width: 760px) {
+  .startup-loading__center { top: 46%; }
+  .startup-loading__hint-content { align-items: flex-start; gap: 10px; }
+  .startup-loading__hint-wordmark { margin-top: 1px; width: 44px; }
+  .startup-loading__hint p { max-width: 78vw; text-align: left; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .startup-loading { transition-duration: 140ms; }
+  .startup-loading__boat,
+  .startup-loading__atmosphere,
+  .startup-loading__hint p { animation: none; }
+  .startup-loading__hint { transition: opacity 140ms linear; }
+}
