@@ -168,7 +168,7 @@ describe("main IPC consultation lifecycle boundaries", () => {
     expect(scaffold.status, scaffold.stderr).toBe(0);
     electronMocks.showOpenDialog.mockResolvedValue({ canceled: false, filePaths: [sourceDirectory] });
 
-    const chooseResult = await handler(IPC_CHANNELS.COUNSELOR_PACKAGES_INSTALL)({});
+    const chooseResult = await handler(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_PREVIEW)({});
     expect(chooseResult).toMatchObject({
       ok: true,
       data: {
@@ -180,7 +180,7 @@ describe("main IPC consultation lifecycle boundaries", () => {
     const previewToken = (chooseResult as { data: { previewToken: string } }).data.previewToken;
     expect(counselorPackageRegistry.get("ipc-professional-listener")).toBeUndefined();
 
-    const importResult = await handler(IPC_CHANNELS.COUNSELOR_PACKAGES_INSTALL)({}, previewToken);
+    const importResult = await handler(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_COMMIT)({}, previewToken);
     expect(importResult).toMatchObject({
       ok: true,
       data: { status: "installed", manifest: { id: "ipc-professional-listener" } }
@@ -200,7 +200,7 @@ describe("main IPC consultation lifecycle boundaries", () => {
     writeFileSync(updateManifestPath, `${JSON.stringify(updateManifest, null, 2)}\n`, "utf8");
     electronMocks.showOpenDialog.mockResolvedValue({ canceled: false, filePaths: [updateDirectory] });
 
-    const updatePreview = await handler(IPC_CHANNELS.COUNSELOR_PACKAGES_INSTALL)({});
+    const updatePreview = await handler(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_PREVIEW)({});
     expect(updatePreview).toMatchObject({
       ok: true,
       data: {
@@ -210,7 +210,7 @@ describe("main IPC consultation lifecycle boundaries", () => {
       }
     });
     const updateToken = (updatePreview as { data: { previewToken: string } }).data.previewToken;
-    const updateResult = await handler(IPC_CHANNELS.COUNSELOR_PACKAGES_INSTALL)({}, updateToken);
+    const updateResult = await handler(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_COMMIT)({}, updateToken);
     expect(updateResult).toMatchObject({
       ok: true,
       data: {
@@ -220,6 +220,38 @@ describe("main IPC consultation lifecycle boundaries", () => {
       }
     });
     expect(counselorPackageRegistry.require("ipc-professional-listener").manifest.version).toBe("0.2.0");
+  });
+
+  it("rejects a changed or cancelled counselor package preview", async () => {
+    const sourceDirectory = join(tempDir, "mutable-source-package");
+    const scaffold = spawnSync(process.execPath, [
+      join(process.cwd(), "scripts/create-counselor-package.mjs"),
+      sourceDirectory,
+      "ipc-professional-listener"
+    ], { encoding: "utf8" });
+    expect(scaffold.status, scaffold.stderr).toBe(0);
+    electronMocks.showOpenDialog.mockResolvedValue({ canceled: false, filePaths: [sourceDirectory] });
+
+    const preview = await handler(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_PREVIEW)({});
+    const previewToken = (preview as { data: { previewToken: string } }).data.previewToken;
+    writeFileSync(join(sourceDirectory, "prompts/voice-zh.md"), "# 预览后被修改\n", "utf8");
+
+    await expect(handler(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_COMMIT)({}, previewToken)).resolves.toMatchObject({
+      ok: false,
+      error: { code: "VALIDATION_ERROR", message: expect.stringContaining("预览后已发生变化") }
+    });
+    expect(counselorPackageRegistry.get("ipc-professional-listener")).toBeUndefined();
+
+    const nextPreview = await handler(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_PREVIEW)({});
+    const nextToken = (nextPreview as { data: { previewToken: string } }).data.previewToken;
+    await expect(handler(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_CANCEL)({}, nextToken)).resolves.toEqual({
+      ok: true,
+      data: undefined
+    });
+    await expect(handler(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_COMMIT)({}, nextToken)).resolves.toMatchObject({
+      ok: false,
+      error: { code: "VALIDATION_ERROR", message: expect.stringContaining("已失效") }
+    });
   });
 
   it("does not use a development environment key for settings connection or model discovery", async () => {

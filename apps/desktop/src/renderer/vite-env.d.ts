@@ -32,7 +32,8 @@ import type {
   VoiceRecognitionEvent,
   VoiceRecognitionStartRequest,
   CounselorPackageManifest,
-  CounselorPackageInstallResult,
+  CounselorPackageImportCommitResult,
+  CounselorPackageImportPreviewResult,
   CounselorPackageRemoveResult,
   AppUpdateStatus
 } from "@shared/index";
@@ -52,7 +53,9 @@ interface LingDesktopApi {
   };
   counselorPackages?: {
     list: () => Promise<IpcSuccess<CounselorPackageManifest[]> | IpcFailure>;
-    install: (previewToken?: string) => Promise<IpcSuccess<CounselorPackageInstallResult> | IpcFailure>;
+    previewImport: () => Promise<IpcSuccess<CounselorPackageImportPreviewResult> | IpcFailure>;
+    commitImport: (previewToken: string) => Promise<IpcSuccess<CounselorPackageImportCommitResult> | IpcFailure>;
+    cancelImport: (previewToken: string) => Promise<IpcSuccess<void> | IpcFailure>;
     remove: (packageId: string) => Promise<IpcSuccess<CounselorPackageRemoveResult> | IpcFailure>;
   };
   settings: {

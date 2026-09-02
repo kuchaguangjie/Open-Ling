@@ -63,6 +63,10 @@ const manifest = {
     counselingDialogue: {
       "zh-CN": "package://prompts/dialogue-zh.md",
       "en-US": "package://prompts/dialogue-en.md"
+    },
+    counselorVoice: {
+      "zh-CN": "package://prompts/voice-zh.md",
+      "en-US": "package://prompts/voice-en.md"
     }
   },
   safety: {
@@ -81,6 +85,8 @@ writeText("prompts/core-zh.md", "# 社区倾听者核心设定\n\n你是一位�
 writeText("prompts/core-en.md", "# Community Listener Core\n\nYou are a careful AI listener who respects the client's autonomy.\n");
 writeText("prompts/dialogue-zh.md", "# 当前场景｜实时会谈\n\n优先理解当前表达，不要急于下结论或提供方案。\n");
 writeText("prompts/dialogue-en.md", "# Current Scene | Live Conversation\n\nPrioritize the current expression; do not rush to conclusions or solutions.\n");
+writeText("prompts/voice-zh.md", "# 语言与表达风格\n\n请在这里定义口吻、句式、节奏与需要避免的表达；不要重复理论核心或安全规则。\n");
+writeText("prompts/voice-en.md", "# Language and Voice\n\nDefine tone, sentence style, pacing, and expressions to avoid here; do not repeat the theoretical core or safety rules.\n");
 writeText("README.md", `# ${packageId}\n\nThis is a Ling professional counselor package development template. The included prompts and images are placeholders, not release-ready professional counseling content.\n\nBefore distribution:\n\n- have qualified professionals design and review the counselor prompts;\n- test long, multi-session, and high-risk conversations;\n- declare prompt and asset rights accurately;\n- remove prompt candidates, evaluations, test transcripts, and user feedback;\n- import the package into Ling and verify the full post-session workflow.\n\nSee \`docs/professional-counselor-extension-spec.md\` in the Ling repository.\n`);
 
 const placeholderPng = Buffer.from(
@@ -92,7 +98,7 @@ for (const filename of ["avatar.png", "portrait.png", "room.png"]) {
 }
 
 process.stdout.write(`Created Ling counselor package: ${targetDirectory}\n`);
-process.stdout.write("Replace the placeholder PNG files, review both prompts, and keep manifest.json in sync.\n");
+process.stdout.write("Replace the placeholder PNG files, review all prompts, and keep manifest.json in sync.\n");
 
 function writeText(relativePath, content) {
   const filePath = resolve(targetDirectory, relativePath);

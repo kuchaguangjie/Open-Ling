@@ -38,7 +38,11 @@ export function CounselorExtensionsSettings() {
     setBusy(true);
     setMessage(undefined);
     try {
-      const result = await api.install();
+      if (preview) {
+        await api.cancelImport(preview.token);
+        setPreview(undefined);
+      }
+      const result = await api.previewImport();
       if (!result.ok) {
         setMessage({ kind: "error", text: result.error.message });
       } else if (result.data.status === "preview") {
@@ -61,8 +65,9 @@ export function CounselorExtensionsSettings() {
     setBusy(true);
     setMessage(undefined);
     try {
-      const result = await api.install(preview.token);
+      const result = await api.commitImport(preview.token);
       if (!result.ok) {
+        setPreview(undefined);
         setMessage({ kind: "error", text: result.error.message });
       } else if (result.data.status === "installed" || result.data.status === "updated") {
         const manifest = result.data.manifest;
@@ -84,10 +89,19 @@ export function CounselorExtensionsSettings() {
         });
       }
     } catch {
+      setPreview(undefined);
       setMessage({ kind: "error", text: l("无法导入咨询师包。", "The counselor package could not be imported.") });
     } finally {
       setBusy(false);
     }
+  }
+
+  async function cancelImport() {
+    const api = window.lingDesktop?.counselorPackages;
+    const token = preview?.token;
+    setPreview(undefined);
+    if (!api || !token) return;
+    await api.cancelImport(token).catch(() => undefined);
   }
 
   async function setPackageEnabled(packageId: string, enabled: boolean) {
@@ -191,7 +205,7 @@ export function CounselorExtensionsSettings() {
             <button className="system-primary-button" disabled={busy} onClick={confirmImport} type="button">
               {preview.currentVersion ? l("确认更新", "Confirm update") : l("确认导入", "Confirm import")}
             </button>
-            <button className="system-secondary-button" disabled={busy} onClick={() => setPreview(undefined)} type="button">{l("取消", "Cancel")}</button>
+            <button className="system-secondary-button" disabled={busy} onClick={cancelImport} type="button">{l("取消", "Cancel")}</button>
           </div>
         </section>
       )}

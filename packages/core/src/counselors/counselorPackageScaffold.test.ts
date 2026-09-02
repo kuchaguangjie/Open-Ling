@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it } from "vitest";
-import { mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -32,8 +32,16 @@ describe("counselor package scaffold", () => {
     });
     expect(registration.manifest).toMatchObject({
       id: "generated-listener",
-      version: "0.1.0"
+      version: "0.1.0",
+      prompts: {
+        counselorVoice: {
+          "zh-CN": "package://prompts/voice-zh.md",
+          "en-US": "package://prompts/voice-en.md"
+        }
+      }
     });
+    expect(existsSync(resolve(packageDirectory, "prompts/voice-zh.md"))).toBe(true);
+    expect(existsSync(resolve(packageDirectory, "prompts/voice-en.md"))).toBe(true);
     expect(registration.manifest).not.toHaveProperty("capabilities");
     expect(registration.manifest).not.toHaveProperty("memory");
   });

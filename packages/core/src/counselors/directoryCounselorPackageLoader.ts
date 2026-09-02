@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFileSync, realpathSync, statSync } from "node:fs";
 import { extname, resolve, sep } from "node:path";
 import {
@@ -98,6 +99,28 @@ export function getCounselorPackageResources(manifest: CounselorPackageManifest)
     ...(manifest.visuals.openingSequence ? [{ uri: manifest.visuals.openingSequence, kind: "visual" as const }] : []),
     ...(manifest.visuals.closingSequence ? [{ uri: manifest.visuals.closingSequence, kind: "visual" as const }] : [])
   ];
+}
+
+/**
+ * Fingerprints the manifest and every declared resource. Import previews use
+ * this to guarantee that the package confirmed by the user is the package
+ * that is installed.
+ */
+export function createCounselorPackageContentHash(
+  rootDirectory: string,
+  manifest: CounselorPackageManifest
+) {
+  const hash = createHash("sha256");
+  hash.update(JSON.stringify(manifest));
+  const resourceUris = [...new Set(getCounselorPackageResources(manifest).map(({ uri }) => uri))]
+    .sort((left, right) => left.localeCompare(right));
+  for (const resourceUri of resourceUris) {
+    hash.update("\0");
+    hash.update(resourceUri);
+    hash.update("\0");
+    hash.update(readFileSync(resolvePackageResourcePath(rootDirectory, resourceUri)));
+  }
+  return `sha256:${hash.digest("hex")}`;
 }
 
 export function resolvePackageResourcePath(rootDirectory: string, resourceUri: string) {

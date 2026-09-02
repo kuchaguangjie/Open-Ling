@@ -32,7 +32,9 @@ describe("CounselorExtensionsSettings", () => {
     vi.stubGlobal("lingDesktop", {
       counselorPackages: {
         list: vi.fn(async () => ({ ok: true as const, data: [manifest] })),
-        install: vi.fn(),
+        previewImport: vi.fn(),
+        commitImport: vi.fn(),
+        cancelImport: vi.fn(),
         remove: vi.fn()
       }
     });
@@ -50,12 +52,13 @@ describe("CounselorExtensionsSettings", () => {
   });
 
   it("previews, imports, disables, enables and removes a package through the desktop bridge", async () => {
-    const install = vi.fn(async (previewToken?: string) => previewToken ? ({
-      ok: true as const,
-      data: { status: "installed" as const, manifest }
-    }) : ({
+    const previewImport = vi.fn(async () => ({
       ok: true as const,
       data: { status: "preview" as const, manifest, previewToken: "preview-1" }
+    }));
+    const commitImport = vi.fn(async () => ({
+      ok: true as const,
+      data: { status: "installed" as const, manifest }
     }));
     const remove = vi.fn(async () => ({
       ok: true as const,
@@ -64,7 +67,9 @@ describe("CounselorExtensionsSettings", () => {
     vi.stubGlobal("lingDesktop", {
       counselorPackages: {
         list: vi.fn(async () => ({ ok: true as const, data: [] })),
-        install,
+        previewImport,
+        commitImport,
+        cancelImport: vi.fn(async () => ({ ok: true as const, data: undefined })),
         remove
       }
     });
@@ -80,8 +85,8 @@ describe("CounselorExtensionsSettings", () => {
     await waitFor(() => expect(screen.queryByText("本地导入 · 未经 Ling 官方审核")).not.toBeInTheDocument());
     expect(screen.getByRole("heading", { name: "社区倾听者" })).toBeInTheDocument();
     expect(screen.getByText("本地导入")).toBeInTheDocument();
-    expect(install).toHaveBeenNthCalledWith(1);
-    expect(install).toHaveBeenNthCalledWith(2, "preview-1");
+    expect(previewImport).toHaveBeenCalledOnce();
+    expect(commitImport).toHaveBeenCalledWith("preview-1");
     fireEvent.click(screen.getByRole("button", { name: "开始咨询" }));
     expect(useAppStore.getState().consultationRequest?.counselorId).toBe(manifest.id);
     fireEvent.click(screen.getByRole("button", { name: "停用" }));
@@ -97,14 +102,15 @@ describe("CounselorExtensionsSettings", () => {
   it("shows a controlled update preview and replaces the hosted manifest", async () => {
     const updatedManifest = structuredClone(manifest);
     updatedManifest.version = "0.3.0";
-    const install = vi.fn(async (previewToken?: string) => previewToken ? ({
+    const commitImport = vi.fn(async () => ({
       ok: true as const,
       data: {
         status: "updated" as const,
         manifest: updatedManifest,
         previousVersion: manifest.version
       }
-    }) : ({
+    }));
+    const previewImport = vi.fn(async () => ({
       ok: true as const,
       data: {
         status: "preview" as const,
@@ -116,7 +122,9 @@ describe("CounselorExtensionsSettings", () => {
     vi.stubGlobal("lingDesktop", {
       counselorPackages: {
         list: vi.fn(async () => ({ ok: true as const, data: [manifest] })),
-        install,
+        previewImport,
+        commitImport,
+        cancelImport: vi.fn(async () => ({ ok: true as const, data: undefined })),
         remove: vi.fn()
       }
     });

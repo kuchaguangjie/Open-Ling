@@ -82,11 +82,18 @@ export interface CounselorPackageValidationResult {
   errors: string[];
 }
 
-export type CounselorPackageInstallResult =
+export type CounselorPackageImportPreviewResult =
   | { status: "cancelled" }
-  | { status: "preview"; manifest: CounselorPackageManifest; previewToken: string; currentVersion?: string }
+  | { status: "preview"; manifest: CounselorPackageManifest; previewToken: string; currentVersion?: string };
+
+export type CounselorPackageImportCommitResult =
   | { status: "installed"; manifest: CounselorPackageManifest }
   | { status: "updated"; manifest: CounselorPackageManifest; previousVersion: string };
+
+/** @deprecated Use the preview and commit result types for the two-step import API. */
+export type CounselorPackageInstallResult =
+  | CounselorPackageImportPreviewResult
+  | CounselorPackageImportCommitResult;
 
 export type CounselorPackageRemoveResult =
   | { status: "cancelled" }
