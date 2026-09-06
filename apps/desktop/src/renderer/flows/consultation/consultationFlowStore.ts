@@ -174,7 +174,7 @@ export const useConsultationFlowStore = create<ConsultationFlowStoreState>((set,
       result = await useSessionStore.getState().activateDraftSession(flow.sessionId);
     } catch {
       const current = get().flow;
-      if (current?.sessionId === flow.sessionId) {
+      if (current === starting) {
         const next = transitionConsultationFlow(current, { type: "START_FAILED" });
         persist(next);
         set({ flow: next, error: flowCopy("没有开始这次咨询。请确认模型配置后重试；如果仍失败，可以返回等待室。", "This session could not begin. Check the model configuration and try again; if it still fails, return to the waiting room."), isBusy: false });
@@ -182,7 +182,7 @@ export const useConsultationFlowStore = create<ConsultationFlowStoreState>((set,
       return;
     }
     const current = get().flow;
-    if (!current || current.sessionId !== flow.sessionId) return;
+    if (current !== starting) return;
     const next = transitionConsultationFlow(current, { type: result.ok ? "START_SUCCEEDED" : "START_FAILED" });
     persist(next);
     set({ flow: next, error: result.ok ? undefined : result.message, isBusy: false });
@@ -198,11 +198,13 @@ export const useConsultationFlowStore = create<ConsultationFlowStoreState>((set,
     try {
       result = await useSessionStore.getState().deleteDraftSession(flow.sessionId);
     } catch {
+      if (get().flow !== cancelling) return;
       const opening: ConsultationFlowState = { ...flow, surface: { kind: "opening", lineIndex } };
       persist(opening);
       set({ flow: opening, error: flowCopy("没有取消这次尚未开始的咨询。请重新读取状态后再试。", "This unstarted session could not be canceled. Reload its status and try again."), isBusy: false });
       return;
     }
+    if (get().flow !== cancelling) return;
     if (result.ok) {
       clearActiveConsultationFlow();
       set({ flow: null, error: undefined, isBusy: false });
@@ -220,6 +222,7 @@ export const useConsultationFlowStore = create<ConsultationFlowStoreState>((set,
     // Count the current session before replacement. It becomes the immediately
     // preceding visit only after the atomic replacement succeeds.
     const visitCount = await useSessionStore.getState().getCounselorVisitCount(flow.counselorId).catch(() => 2);
+    if (get().flow !== flow) return;
     let result;
     try {
       result = await useSessionStore.getState().createDraftSession({
@@ -229,13 +232,13 @@ export const useConsultationFlowStore = create<ConsultationFlowStoreState>((set,
       });
     } catch {
       const current = get().flow;
-      if (current?.sessionId === flow.sessionId && current.surface.kind === "session") {
+      if (current === flow) {
         set({ flow: current, error: flowCopy("没有开启新咨询。原会谈仍保留，请重试。", "A new session could not be started. The earlier session remains unchanged. Please try again."), isBusy: false });
       }
       return;
     }
     const current = get().flow;
-    if (!current || current.sessionId !== flow.sessionId || current.surface.kind !== "session") return;
+    if (current !== flow) return;
     if (!result.ok) {
       set({ flow: current, error: result.message, isBusy: false });
       return;
@@ -265,13 +268,13 @@ export const useConsultationFlowStore = create<ConsultationFlowStoreState>((set,
       result = await useSessionStore.getState().endSession(flow.sessionId);
     } catch {
       const current = get().flow;
-      if (current?.sessionId === flow.sessionId && current.surface.kind === "ending") {
+      if (current === ending) {
         set({ flow: current, error: flowCopy("暂时无法确认咨询是否已经结束，请重新检查状态。", "Ling cannot confirm whether the session ended. Check its status again."), isBusy: false });
       }
       return;
     }
     const current = get().flow;
-    if (!current || current.sessionId !== flow.sessionId || current.surface.kind !== "ending") return;
+    if (current !== ending) return;
     if (result.ok && result.state === "discarded") {
       useConsultationDraftStore.getState().clearSession(flow.sessionId);
       persist(null);
@@ -298,11 +301,12 @@ export const useConsultationFlowStore = create<ConsultationFlowStoreState>((set,
     try {
       result = await useSessionStore.getState().readSessionStatus(flow.sessionId);
     } catch {
+      if (get().flow !== flow) return;
       set({ isBusy: false, error: flowCopy("暂时无法确认这场咨询的状态。请重新读取后再操作。", "Ling cannot confirm this session's status. Reload it before continuing.") });
       return;
     }
     const current = get().flow;
-    if (!current || current.sessionId !== flow.sessionId || current.surface.kind !== "ending") return;
+    if (current !== flow) return;
     if (!result.ok) {
       set({ flow: current, isBusy: false, error: result.message });
       return;
@@ -354,7 +358,7 @@ export const useConsultationFlowStore = create<ConsultationFlowStoreState>((set,
       result = await useSessionStore.getState().loadSessionLetter(flow.sessionId);
     } catch {
       const current = get().flow;
-      if (current?.sessionId === flow.sessionId && (current.surface.kind === "closing-menu" || current.surface.kind === "closing-notice")) {
+      if (current === flow) {
         const next = transitionConsultationFlow(current, { type: "SHOW_LETTER_UNKNOWN" });
         persist(next);
         set({ flow: next, isBusy: false, error: flowCopy("暂时无法确认咨询师来信的状态，请稍后再试。", "Ling cannot confirm the counselor letter's status. Please try again later.") });
@@ -362,7 +366,7 @@ export const useConsultationFlowStore = create<ConsultationFlowStoreState>((set,
       return;
     }
     const current = get().flow;
-    if (!current || current.sessionId !== flow.sessionId || (current.surface.kind !== "closing-menu" && current.surface.kind !== "closing-notice")) return;
+    if (current !== flow) return;
     const event = !result.ok
       ? { type: "SHOW_LETTER_UNKNOWN" as const }
       : result.availability === "ready"
@@ -418,11 +422,12 @@ export const useConsultationFlowStore = create<ConsultationFlowStoreState>((set,
     try {
       result = await useSessionStore.getState().resumeSession(flow.sessionId);
     } catch {
+      if (get().flow !== flow) return;
       set({ isBusy: false, error: flowCopy("暂时无法继续这次咨询，请重试。", "This session could not be continued. Please try again.") });
       return;
     }
     const current = get().flow;
-    if (!current || current.sessionId !== flow.sessionId) return;
+    if (current !== flow) return;
     if (!result.ok) {
       set({ isBusy: false, error: result.message });
       return;

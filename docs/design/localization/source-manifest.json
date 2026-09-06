@@ -107,7 +107,7 @@
       "id": "content.user-guide",
       "source": "apps/desktop/src/renderer/pages/lobby/features/resources/userGuideContent.ts",
       "translation": "apps/desktop/src/renderer/pages/lobby/features/resources/userGuideContent.en-US.ts",
-      "sourceHash": "1390e72bf91e680758d656f031443e50aaca02270c6c8e9e00b23c96dbc21fa7"
+      "sourceHash": "9abd517ddd528a573379385240b9bf6dd5863eee72f5e727ad1cd338783f11b1"
     },
     {
       "id": "content.stories.primary",

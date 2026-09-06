@@ -547,12 +547,11 @@ export function registerIpcHandlers(repositories?: IpcRepositories, localBackupA
 
     const input = api as ApiSettings;
     const locale = (await repositories.settings.read())?.locale ?? "zh-CN";
-    // Settings must report only a key the user has explicitly saved. The
-    // development environment fallback remains available to actual local model
-    // calls, but must never make the configuration UI look complete.
-    const apiKey = requiresApiKey(input) ? await repositories.secrets.readApiKey() || "" : "";
+    // Test the current draft without persisting it. Never use a development
+    // environment key to make user configuration appear valid.
+    const apiKey = requiresApiKey(input) ? input.apiKey?.trim() || await repositories.secrets.readApiKey() || "" : "";
     if (requiresApiKey(input) && !apiKey) {
-      return { connected: false, message: mainCopy(locale, "请先保存 API Key，再测试连接。", "Save the API key before testing the connection.") };
+      return { connected: false, message: mainCopy(locale, "请先输入 API Key，再测试连接。", "Enter an API key before testing the connection.") };
     }
 
     try {
@@ -592,7 +591,7 @@ export function registerIpcHandlers(repositories?: IpcRepositories, localBackupA
 
     const input = api as ApiSettings;
     const locale = (await repositories.settings.read())?.locale ?? "zh-CN";
-    const apiKey = requiresApiKey(input) ? await repositories.secrets.readApiKey() || "" : "";
+    const apiKey = requiresApiKey(input) ? input.apiKey?.trim() || await repositories.secrets.readApiKey() || "" : "";
     if (requiresApiKey(input) && !apiKey) {
       return {
         models: [],

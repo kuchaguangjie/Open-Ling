@@ -267,7 +267,7 @@ describe("main IPC consultation lifecycle boundaries", () => {
 
       await expect(handler(IPC_CHANNELS.SETTINGS_TEST_CONNECTION)({}, api)).resolves.toMatchObject({
         ok: true,
-        data: { connected: false, message: "请先保存 API Key，再测试连接。" }
+        data: { connected: false, message: "请先输入 API Key，再测试连接。" }
       });
       await expect(handler(IPC_CHANNELS.SETTINGS_LIST_MODELS)({}, api)).resolves.toMatchObject({
         ok: true,
@@ -277,6 +277,63 @@ describe("main IPC consultation lifecycle boundaries", () => {
       if (previousDevelopmentKey === undefined) delete process.env.DEEPSEEK_API_KEY;
       else process.env.DEEPSEEK_API_KEY = previousDevelopmentKey;
     }
+  });
+
+  it.each([
+    ["", "  draft-key  ", "draft-key"],
+    ["saved-key", "new-key", "new-key"],
+    ["saved-key", "", "saved-key"],
+    ["saved-key", "   ", "saved-key"]
+  ])("tests and discovers with the current key without saving (%s, %s)", async (savedKey, draftKey, expectedKey) => {
+    if (savedKey) await repositories.secrets.saveApiKey(savedKey);
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({
+      choices: [{ message: { content: "连接成功" } }],
+      data: [{ id: "test-model" }]
+    }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    vi.stubGlobal("fetch", fetchMock);
+    const api = { apiBaseUrl: "https://models.example.com/v1", apiKey: draftKey, modelName: "test-model" };
+    await expect(handler(IPC_CHANNELS.SETTINGS_TEST_CONNECTION)({}, api)).resolves.toMatchObject({
+      ok: true, data: { connected: true }
+    });
+    await expect(handler(IPC_CHANNELS.SETTINGS_LIST_MODELS)({}, api)).resolves.toMatchObject({
+      ok: true, data: { source: "remote" }
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    for (const [, options] of fetchMock.mock.calls as unknown as Array<[string, RequestInit]>) {
+      expect(options.headers).toMatchObject({ Authorization: `Bearer ${expectedKey}` });
+    }
+    expect(await repositories.secrets.readApiKey()).toBe(savedKey || null);
+  });
+
+  it("does not retry an invalid replacement with the saved key or persist it", async () => {
+    await repositories.secrets.saveApiKey("valid-saved-key");
+    const fetchMock = vi.fn(async () => new Response("Unauthorized", { status: 401 }));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(handler(IPC_CHANNELS.SETTINGS_TEST_CONNECTION)({}, {
+      apiBaseUrl: "https://models.example.com/v1", apiKey: "invalid-new-key", modelName: "test-model"
+    })).resolves.toMatchObject({ ok: true, data: { connected: false } });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({
+      headers: expect.objectContaining({ Authorization: "Bearer invalid-new-key" })
+    }));
+    expect(await repositories.secrets.readApiKey()).toBe("valid-saved-key");
+  });
+
+  it("saves a trimmed key, reads only a masked key, keeps a blank replacement, and deletes explicitly", async () => {
+    const settings = {
+      api: { apiBaseUrl: "https://api.deepseek.com", apiKey: "  synthetic-test-key  ", modelName: "deepseek-v4-flash" },
+      defaultCounselorId: "chengling", defaultRoomThemeId: "warm-study"
+    };
+    const save = handler(IPC_CHANNELS.SETTINGS_SAVE);
+    await expect(save({}, settings)).resolves.toMatchObject({ ok: true });
+    expect(await repositories.secrets.readApiKey()).toBe("synthetic-test-key");
+    const read = await handler(IPC_CHANNELS.SETTINGS_READ)({}) as { ok: boolean; data: typeof settings };
+    expect(read).toMatchObject({ ok: true, data: { api: { apiKey: "", apiKeySaved: true } } });
+    expect(JSON.stringify(await repositories.settings.read())).not.toContain("synthetic-test-key");
+    await expect(save({}, read.data)).resolves.toMatchObject({ ok: true });
+    expect(await repositories.secrets.readApiKey()).toBe("synthetic-test-key");
+    await expect(handler(IPC_CHANNELS.SETTINGS_API_KEY_DELETE)({})).resolves.toMatchObject({ ok: true });
+    expect(await repositories.secrets.readApiKey()).toBeNull();
   });
 
   it("returns every valid model id from an OpenAI-compatible models endpoint", async () => {

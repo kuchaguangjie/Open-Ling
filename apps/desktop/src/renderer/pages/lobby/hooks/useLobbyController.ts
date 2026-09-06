@@ -3,7 +3,6 @@ import { defaultCounselors, getDefaultCounselors } from "@shared/index";
 import { preloadCounselorSessionAssets } from "../../../components/counselor/counselorPortraitAssets";
 import { isDevBrowserPreview } from "../../../devBrowserPreview";
 import { preloadCounselorFlowAssets } from "../../../flows/consultation/counselorFlowAssets";
-import { getOpeningPrivacyAssurance, splitDialogueSentences } from "../../../flows/consultation/counselorFlowContent";
 import {
   hasConfirmedCurrentInformedConsent,
   markInformedConsentConfirmed
@@ -14,7 +13,7 @@ import { useAppStore } from "../../../stores/appStore";
 import { useSettingsStore } from "../../../stores/settingsStore";
 import { useSessionStore } from "../../../stores/sessionStore";
 import { getDialogueScripts } from "../content/dialogueContent";
-import { getReceptionSmallTalkItems, type ReceptionSmallTalkItem } from "../content/smallTalkContent";
+import { getReceptionSmallTalkIntro, getReceptionSmallTalkItems, type ReceptionSmallTalkItem } from "../content/smallTalkContent";
 import { translate } from "../../../localization";
 import type { LobbyFeatureId } from "../features/lobbyFeatureRegistry";
 import type { DialogueFlow, DialogueOption, GardenWeather } from "../lobbyContracts";
@@ -117,7 +116,7 @@ export function useLobbyController({
   const sessions = useSessionStore((state) => state.sessions);
   const openDraftSession = useConsultationFlowStore((state) => state.openDraftSession);
   const openPersistedSession = useConsultationFlowStore((state) => state.openPersistedSession);
-  const api = useSettingsStore((state) => state.api);
+  const api = useSettingsStore((state) => state.savedApi);
   const locale = useSettingsStore((state) => state.locale);
   const [dialogueFlow, setDialogueFlow] = useState<DialogueFlow | null>(() => {
     if (!readWelcomeSeen()) return "firstVisit";
@@ -188,9 +187,7 @@ export function useLobbyController({
     }
     const lines = isFirstSmallTalk
       ? [
-          ...splitDialogueSentences([
-            getOpeningPrivacyAssurance("first", api.connectionKind ?? "remote", locale)
-          ]),
+          ...getReceptionSmallTalkIntro(locale),
           ...item.lines
         ]
       : item.lines;
@@ -225,6 +222,7 @@ export function useLobbyController({
     setShowModelConnection(false);
     try {
       const priorVisitCount = await getCounselorVisitCount(counselorId);
+      if (bookingOperationRef.current !== operationId) return;
       const result = await createDraftSession({ counselorId });
       if (bookingOperationRef.current !== operationId) {
         return;
@@ -264,7 +262,11 @@ export function useLobbyController({
     }
     const draftSession = sessions.find((session) => session.counselorId === counselorId && session.status === "draft");
     if (draftSession) {
+      const operationId = ++bookingOperationRef.current;
+      setIsBooking(true);
       const priorVisitCount = await getCounselorVisitCount(counselorId).catch(() => 2);
+      if (bookingOperationRef.current !== operationId) return;
+      setIsBooking(false);
       setShowInformedConsent(false);
       setPendingBookingCounselorId(null);
       handoffReceptionIfNeeded(counselorId, draftSession.id);
@@ -282,9 +284,7 @@ export function useLobbyController({
   const continueBookingPreparation = (counselorId: string) => {
     if (
       !isDevBrowserPreview() &&
-      api.connectionKind !== "local" &&
-      !api.apiKeySaved &&
-      !api.apiKey?.trim()
+      (!api.apiBaseUrl.trim() || !api.modelName.trim() || (api.connectionKind !== "local" && !api.apiKeySaved))
     ) {
       setDialogueFlow(null);
       setShowDialogueChoices(false);

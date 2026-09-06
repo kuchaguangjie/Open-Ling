@@ -58,7 +58,7 @@ function getClosingRotationIndex(sessions: PrototypeSession[], counselorId: stri
 
 export function CounselingRoomPage() {
   const { locale, t } = useLingua();
-  const api = useSettingsStore((state) => state.api);
+  const api = useSettingsStore((state) => state.savedApi);
   const {
     activeSessionId,
     activeStreamRequestId,

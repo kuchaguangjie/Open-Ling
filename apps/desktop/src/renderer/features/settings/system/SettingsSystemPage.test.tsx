@@ -389,7 +389,10 @@ describe("SettingsSystemPage profile settings", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "接入说明" }));
     expect(screen.getByRole("dialog", { name: "模型服务接入说明" })).toBeInTheDocument();
-    expect(screen.getByText("默认示例：DeepSeek V4 Flash")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "第一次连接：按这 5 步操作" })).toBeInTheDocument();
+    expect(screen.getByText(/API Key（接口密钥）/)).toBeInTheDocument();
+    expect(screen.getByText(/粘贴后就能测试，不需要先保存/)).toBeInTheDocument();
+    expect(screen.getByText(/聊天会员不一定包含 API 额度/)).toBeInTheDocument();
     expect(screen.queryByText("默认示例：DeepSeek V4 Pro")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "关闭接入说明" }));
     expect(screen.queryByRole("dialog", { name: "模型服务接入说明" })).not.toBeInTheDocument();
@@ -398,7 +401,11 @@ describe("SettingsSystemPage profile settings", () => {
     expect(apiKeyInput).toHaveAttribute("type", "password");
     fireEvent.change(apiKeyInput, { target: { value: "sk-deepseek-test" } });
     expect(screen.getAllByText("待保存").length).toBeGreaterThan(0);
-    expect(screen.getByRole("button", { name: "测试连接" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "测试连接" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "测试连接" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "测试连接" })).toBeEnabled());
+    expect(testConnection).toHaveBeenCalledWith(expect.objectContaining({ apiKey: "sk-deepseek-test" }));
+    expect(save).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "显示 API Key" }));
     expect(apiKeyInput).toHaveAttribute("type", "text");
     fireEvent.click(screen.getByRole("button", { name: "隐藏 API Key" }));
@@ -426,8 +433,16 @@ describe("SettingsSystemPage profile settings", () => {
       );
     });
 
+    await waitFor(() => expect(apiKeyInput).toHaveValue(""));
+    expect(screen.getByRole("button", { name: "显示 API Key" })).toBeDisabled();
+    fireEvent.change(apiKeyInput, { target: { value: "replacement-key" } });
+    expect(apiKeyInput).toHaveAttribute("type", "password");
+    fireEvent.click(screen.getByRole("button", { name: "显示 API Key" }));
+    expect(apiKeyInput).toHaveValue("replacement-key");
+    expect(apiKeyInput).toHaveAttribute("type", "text");
     fireEvent.click(screen.getByRole("button", { name: "读取可用模型" }));
-    await waitFor(() => expect(listModels).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByRole("button", { name: "读取可用模型" })).toBeEnabled());
+    expect(listModels).toHaveBeenCalledWith(expect.objectContaining({ apiKey: "replacement-key" }));
     fireEvent.click(screen.getByRole("button", { name: "测试连接" }));
     await waitFor(() => expect(testConnection).toHaveBeenCalled());
   }, 15_000);

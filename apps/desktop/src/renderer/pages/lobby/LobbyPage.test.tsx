@@ -91,15 +91,15 @@ describe("等待室大厅", () => {
     fireEvent.click(screen.getByRole("button", { name: "随便聊聊" }));
 
     completeCurrentLine();
-    expect(screen.getByText(/对话记录会保存在这台设备上/, { selector: ".lobby-dialogue-text" })).toBeInTheDocument();
+    expect(screen.getByText(/不会调用 AI 服务，也不会生成咨询记录/, { selector: ".lobby-dialogue-text" })).toBeInTheDocument();
     completeAndAdvanceCurrentLine();
     completeCurrentLine();
-    expect(screen.getByText(/必要的内容会发送给你当前接入的模型服务商/, { selector: ".lobby-dialogue-text" })).toBeInTheDocument();
+    expect(screen.getByText(/生成回答需要的内容会发送给你选择的服务商/, { selector: ".lobby-dialogue-text" })).toBeInTheDocument();
 
     completeAndAdvanceSmallTalkToChoices();
     fireEvent.click(screen.getByRole("button", { name: "再多聊聊" }));
 
-    expect(screen.queryByText(/对话记录会保存在这台设备上/, { selector: ".lobby-dialogue-text" })).not.toBeInTheDocument();
+    expect(screen.queryByText(/不会调用 AI 服务，也不会生成咨询记录/, { selector: ".lobby-dialogue-text" })).not.toBeInTheDocument();
   });
 
   it("首次对白支持空格补全，并在补全后自动显示选项", () => {

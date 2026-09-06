@@ -49,7 +49,7 @@ export function UserGuideReader({ onBack }: { onBack: () => void }) {
       navigationLabel={t("guide.directory")}
       onBack={onBack}
       title={t("guide.title")}
-      version="2026.08.08"
+      version="2026.09.07"
     >
       <div className="resource-help-topic" key={activeTopic.id}>
         <p className="resource-help-topic-label">{t("guide.topicLabel")}</p>
