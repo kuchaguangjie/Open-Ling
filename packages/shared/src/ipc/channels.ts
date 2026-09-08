@@ -13,7 +13,9 @@ export const IPC_CHANNELS = {
   APP_UPDATE_STATUS_CHANGED: "ling:app:update-status-changed",
 
   COUNSELOR_PACKAGES_LIST: "ling:counselor-packages:list",
-  COUNSELOR_PACKAGES_INSTALL: "ling:counselor-packages:install",
+  COUNSELOR_PACKAGES_IMPORT_PREVIEW: "ling:counselor-packages:import-preview",
+  COUNSELOR_PACKAGES_IMPORT_COMMIT: "ling:counselor-packages:import-commit",
+  COUNSELOR_PACKAGES_IMPORT_CANCEL: "ling:counselor-packages:import-cancel",
   COUNSELOR_PACKAGES_REMOVE: "ling:counselor-packages:remove",
 
   SETTINGS_READ: "ling:settings:read",

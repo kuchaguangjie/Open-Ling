@@ -7,6 +7,8 @@ export type {
   PostSessionAgentPipelineTasks
 } from "./agents/postSessionAgentPipeline";
 export {
+  createCounselorPackageContentHash,
+  getCounselorPackageResources,
   loadDirectoryCounselorPackage,
   resolvePackageResourcePath
 } from "./counselors/directoryCounselorPackageLoader";

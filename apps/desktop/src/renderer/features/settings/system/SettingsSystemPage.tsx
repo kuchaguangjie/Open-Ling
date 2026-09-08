@@ -1,4 +1,5 @@
 import { type ChangeEvent, type FormEvent, type KeyboardEvent as ReactKeyboardEvent, type ReactNode, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { AppUpdateStatus, CursorTheme, DataExportScope, ReadingLineSpacing, ReadingTextSize, SupportedLocale } from "@shared/index";
 import { getDefaultModelReasoningEffort, getModelReasoningOptions, normalizeModelReasoningEffort } from "@core/providers/modelCapabilities";
 import { createRecoveryPhrase } from "../../access-lock/recoveryPhrase";
@@ -373,6 +374,7 @@ function ModelAccessSettings() {
     availableModels,
     backstageModels,
     connectionStatus,
+    dirtySections,
     deleteApiKey,
     loadModels,
     message,
@@ -387,7 +389,7 @@ function ModelAccessSettings() {
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const isLocal = api.connectionKind === "local";
-  const isBusy = status === "loading" || status === "saving" || status === "testing";
+  const isBusy = status === "loading" || status === "saving" || status === "testing" || modelListStatus === "loading";
   const isLoadingModels = modelListStatus === "loading";
   const modelOptions = buildModelOptions(availableModels, [api.modelName]);
   const selectedModel = modelOptions.find((model) => model.id === api.modelName) ?? modelOptions[0];
@@ -407,7 +409,10 @@ function ModelAccessSettings() {
         isDeepSeek: false
       }
     : remotePresentation;
-  const hasUnsavedApiKey = !isLocal && Boolean(api.apiKey?.trim()) && !api.apiKeySaved;
+  useEffect(() => {
+    if (!api.apiKey || isLocal) setApiKeyVisible(false);
+  }, [api.apiKey, isLocal]);
+  const hasUnsavedApiKey = dirtySections.model;
   const isConfigured = Boolean(api.apiBaseUrl.trim() && api.modelName.trim() && (isLocal || api.apiKeySaved || api.apiKey?.trim()));
   const providerStatus = connectionStatus === "success"
     ? "ok"
@@ -521,7 +526,7 @@ function ModelAccessSettings() {
   }
 
   const canReadModels = !isBusy && !isLoadingModels && (isLocal || Boolean(api.apiKeySaved || api.apiKey?.trim()));
-  const canTest = !isBusy && isConfigured && (isLocal || api.apiKeySaved);
+  const canTest = !isBusy && isConfigured;
 
   return (
     <div className="model-access-grid">
@@ -537,11 +542,11 @@ function ModelAccessSettings() {
       </header>
 
       <div className="model-connection-kind" aria-label={l("模型运行位置", "Where the model runs")} role="group">
-        <button className={!isLocal ? "active" : ""} onClick={() => switchConnectionKind("remote")} type="button">
+        <button disabled={isBusy} className={!isLocal ? "active" : ""} onClick={() => switchConnectionKind("remote")} type="button">
           <strong>{l("API 服务", "API service")}</strong>
           <small>{l("通过 API Key 连接模型服务商", "Connect to a model provider with an API key")}</small>
         </button>
-        <button className={isLocal ? "active" : ""} onClick={() => switchConnectionKind("local")} type="button">
+        <button disabled={isBusy} className={isLocal ? "active" : ""} onClick={() => switchConnectionKind("local")} type="button">
           <strong>{l("本机模型", "Local model")}</strong>
           <small>{l("连接这台设备上的模型服务", "Connect to a model service on this device")}</small>
         </button>
@@ -575,7 +580,7 @@ function ModelAccessSettings() {
               </span>
             </header>
 
-            <div className="deepseek-config-form">
+            <fieldset className="deepseek-config-form" disabled={isBusy}>
               {isLocal && (
                 <fieldset className="local-runtime-options">
                   <legend>{l("本机服务", "Local service")}</legend>
@@ -606,11 +611,14 @@ function ModelAccessSettings() {
                   ))}
                 </fieldset>
               )}
-              {!isLocal && <label className="system-field wide">
-                <span>API Key</span>
+              {!isLocal && <div className="system-field wide">
+                <label htmlFor="model-api-key">API Key</label>
                 <span className="api-key-input-wrap">
                   <input
                     autoComplete="off"
+                    spellCheck={false}
+                    id="model-api-key"
+                    aria-describedby="model-api-key-note"
                     onChange={(event) => updateApi({ apiKey: event.target.value })}
                     placeholder={api.apiKeySaved ? `${l("已保存", "Saved")} ${api.apiKeyPreview ?? ""}` : l("输入 API Key", "Enter API key")}
                     type={apiKeyVisible ? "text" : "password"}
@@ -618,6 +626,9 @@ function ModelAccessSettings() {
                   />
                   <button
                     aria-label={apiKeyVisible ? l("隐藏 API Key", "Hide API key") : l("显示 API Key", "Show API key")}
+                    aria-pressed={apiKeyVisible}
+                    disabled={!api.apiKey}
+                    title={l("仅显示或隐藏本次输入的密钥", "Show or hide only the key entered here")}
                     className="api-key-visibility-button"
                     onClick={() => setApiKeyVisible((visible) => !visible)}
                     type="button"
@@ -625,7 +636,12 @@ function ModelAccessSettings() {
                     <SystemIcon name={apiKeyVisible ? "eyeOff" : "eye"} />
                   </button>
                 </span>
-              </label>}
+                <small className="system-field-note" id="model-api-key-note">
+                  {api.apiKeySaved
+                    ? l("密钥已保存，不回显完整内容。留空沿用已保存密钥；输入新密钥后可先测试，再保存替换。", "The saved key is not revealed. Leave this blank to keep it, or enter a new key, test it, then save to replace it.")
+                    : l("粘贴后可直接测试，无需先保存。小眼睛仅显示或隐藏本次输入的密钥。", "Test immediately after pasting; no need to save first. The eye only shows or hides the key entered here.")}
+                </small>
+              </div>}
               <label className="system-field wide">
                 <span>{l("模型服务地址（Base URL，兼容 OpenAI 接口格式）", "Model service URL (Base URL, OpenAI-compatible API)")}</span>
                 <input
@@ -695,7 +711,7 @@ function ModelAccessSettings() {
                   </select>
                 </label>
               </section>
-            </div>
+            </fieldset>
 
             <div className="deepseek-action-row">
               <SecondaryButton disabled={!canTest} onClick={() => void testConnection()}>
@@ -708,7 +724,8 @@ function ModelAccessSettings() {
                 {l("删除 API Key", "Delete API key")}
               </SecondaryButton>}
             </div>
-            {message && <p className="system-feedback">{message}</p>}
+            <p className="system-field-note">{l("测试连接和读取模型使用当前填写的配置，不会自动保存。确认后点击保存配置，新会谈才会使用它。", "Testing and loading models use the current form without saving. Save the configuration to use it for new sessions.")}</p>
+            {message && <p className="system-feedback" role="status">{message}</p>}
             <div className="system-truth-note">
               {isLocal
                 ? isLoopbackAddress(api.apiBaseUrl)
@@ -754,7 +771,7 @@ function ModelAccessGuideDialog({ onClose }: { onClose: () => void }) {
     };
   }, [onClose]);
 
-  return (
+  return createPortal(
     <div className="model-guide-backdrop" onClick={onClose}>
       <section
         aria-modal="true"
@@ -766,26 +783,39 @@ function ModelAccessGuideDialog({ onClose }: { onClose: () => void }) {
         <header>
           <div>
             <h2 id="model-guide-title">{l("模型服务接入说明", "Model service connection guide")}</h2>
-            <p>{l("可直接选择 DeepSeek、Kimi、GLM 或千问，也可填写其他兼容 OpenAI 接口格式的 Base URL。", "Choose DeepSeek, Kimi, GLM, or Qwen directly, or enter another OpenAI-compatible Base URL.")}</p>
+            <p>{l("第一次使用也没关系，按下面的步骤连接即可。", "New to this? Follow the steps below to connect.")}</p>
           </div>
           <button aria-label={l("关闭接入说明", "Close connection guide")} className="model-guide-close" onClick={onClose} ref={closeRef} type="button">
             ×
           </button>
         </header>
 
-        <div className="model-guide-recommendations">
-          <div>
-            <strong>{l("默认会谈模型", "Default session model")}</strong>
-            <span>{l("默认示例：DeepSeek V4 Flash", "Default example: DeepSeek V4 Flash")}</span>
-            <p>{l("新建会谈默认使用该模型；已有会谈继续使用创建时记录的模型。速度、稳定性、费用和数据处理方式由服务商与具体模型决定。", "New sessions use this model by default; existing sessions continue with the model recorded at creation. Speed, reliability, cost, and data handling depend on the provider and model.")}</p>
-          </div>
-        </div>
+        <h3>{l("先认识两个词", "Two terms to know")}</h3>
+        <p>{l("模型服务商：提供 AI 回答能力的平台，例如 DeepSeek、Kimi、GLM、千问。Ling 是你使用的咨询应用，回答能力由你选择的平台提供。", "A model provider is a platform such as DeepSeek, Kimi, GLM, or Qwen that generates AI answers. Ling is your counseling app; your chosen provider supplies the AI responses.")}</p>
+        <p>{l("API Key（接口密钥）：平台发给你的一串专用字符，相当于允许 Ling 调用你账户中 AI 服务的通行证。它不是登录密码、验证码，也不是聊天网址。请像密码一样保管，不要发给别人或公开截图。", "An API key is a string issued by that platform, like a pass allowing Ling to use AI services through your account. It is not your login password, verification code, or chat URL. Keep it private like a password; do not share it or publish screenshots of it.")}</p>
 
+        <h3>{l("第一次连接：按这 5 步操作", "First connection: follow these 5 steps")}</h3>
+        <ol>
+          <li><strong>{l("获取密钥。", "Get a key.")}</strong>{l("打开你选择的服务商官方网站，注册或登录，进入「开放平台 / 开发者平台 / API 控制台」，找到「API Key / API 密钥」并创建、复制密钥。具体名称以平台为准；普通聊天页面的登录密码不能填在这里。", "Open your chosen provider's official website, sign up or log in, then open its developer platform or API console. Find API Keys, create a key, and copy it. Labels vary by provider. Do not use your chat account password here.")}</li>
+          <li><strong>{l("回到 Ling，选择同一家服务商并粘贴。", "Return to Ling, select the same provider, and paste.")}</strong>{l("把完整密钥粘贴到「API Key」输入框。小眼睛可以检查本次输入。不要复制引号或说明文字；密钥首尾多余空白会在测试和保存时自动去除。", "Paste the complete key into the API Key field. Use the eye to check this input. Do not include quotes or explanatory text; surrounding whitespace is trimmed when testing and saving.")}</li>
+          <li><strong>{l("选择模型。", "Choose a model.")}</strong>{l("模型就是具体负责回答的 AI。初次使用可以保留默认选择；也可点击「读取可用模型」查看账户能用的模型。服务地址（Base URL）是 Ling 发送请求的入口，选择预设服务商后通常不用改。", "A model is the specific AI that answers you. You can keep the default or load available models to see your account's options. The Base URL is the address Ling sends requests to; usually keep the preset for your provider.")}</li>
+          <li><strong>{l("点击「测试连接」。", "Click Test connection.")}</strong>{l("粘贴后就能测试，不需要先保存。Ling 会用当前填写的密钥、地址和模型发送一次简短请求，确认能否收到回答。测试和读取模型都不会自动保存或替换旧配置。", "You can test right after pasting, without saving first. Ling sends a short request using the key, URL, and model currently in the form to check for a response. Testing and loading models do not save or replace your previous configuration.")}</li>
+          <li><strong>{l("成功后点击「保存配置」。", "After success, click Save configuration.")}</strong>{l("看到「配置已保存」就完成了，不需要再确认一次。新建会谈会使用这份配置。保存后密钥输入框会清空并显示「已保存」，这是正常的，不代表密钥丢失。", "When Configuration saved appears, setup is complete; no second confirmation is needed. New sessions use this configuration. The key field then clears and shows Saved. This is normal and does not mean the key was lost.")}</li>
+        </ol>
+
+        <h3>{l("测试失败怎么办？", "What if the test fails?")}</h3>
+        <p>{l("先确认密钥完整、服务商选对、网络可用；再到服务商平台检查密钥是否有效、账户是否有 API 额度或余额，以及是否允许使用所选模型。仍失败时，重新复制密钥或换一个账户可用的模型再测，不需要为了重试先保存。", "Check that the key is complete, the provider matches, and the network works. On the provider's platform, check that the key is active, API credit or balance is available, and your account has access to the model. If needed, copy the key again or select another available model and retry without saving first.")}</p>
+        <p>{l("费用由服务商收取，聊天会员不一定包含 API 额度。测试也可能产生少量费用；开始使用前请查看平台的 API 计费说明。", "The provider charges for API usage. A chat subscription may not include API credit. Testing may also incur a small charge; check the platform's API pricing before use.")}</p>
+
+        <h3>{l("以后更换或删除密钥", "Replacing or deleting a key later")}</h3>
+        <p>{l("更换：直接粘贴新密钥，测试成功后保存。留空：继续使用已保存的密钥，不会删除它。删除：点击「删除 API Key」并确认。小眼睛只能显示本次输入，不能查看已经保存的完整密钥。", "Replace: paste a new key, test it, then save. Leave blank: keep using the saved key; this does not delete it. Delete: click Delete API key and confirm. The eye reveals only your current input, never the full saved key.")}</p>
+        <p>{l("如果选择「本机模型」：先在 Ollama 或 LM Studio 启动模型服务，再回 Ling 检测并选择模型、测试，最后保存并使用。这条路径不需要填写上述 API Key。", "If you choose Local model, first start a model service in Ollama or LM Studio. Then detect and select a model in Ling, test, and save. This path does not require the API key described above.")}</p>
         <p className="model-guide-note">
-          {l("API Key 保存在本机，不会显示完整已保存密钥。会谈所需的消息和上下文会发送到你配置的模型服务地址，请同时阅读该服务商的数据处理规则。咨询结束后的整理和来信也可能调用同一服务。", "Your API key is stored locally, and the full saved key is never displayed. Messages and context required for counseling are sent to the model service you configure, so review that provider's data-handling terms as well. Post-session organization and letters may use the same service.")}
+          {l("密钥保存在这台设备上。使用 API 服务时，生成回答所需的会谈内容会发送给你选择的服务商；咨询结束后的整理和来信也可能调用它。请了解该平台的隐私与数据处理规则。", "The key is stored on this device. When using an API service, counseling content needed for responses is sent to your chosen provider. Post-session organization and letters may use it too. Review that platform's privacy and data-handling terms.")}
         </p>
       </section>
-    </div>
+    </div>,
+    document.body
   );
 }
 

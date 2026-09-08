@@ -69,7 +69,10 @@ import {
   removeInstalledCounselorPackage,
   updateCounselorPackageFromDirectory
 } from "../../../../../packages/core/src/counselors/counselorPackageInstaller.js";
-import { loadDirectoryCounselorPackage } from "../../../../../packages/core/src/counselors/directoryCounselorPackageLoader.js";
+import {
+  createCounselorPackageContentHash,
+  loadDirectoryCounselorPackage
+} from "../../../../../packages/core/src/counselors/directoryCounselorPackageLoader.js";
 import {
   createImportedDocumentSummary,
   expandImportedDocumentMessages,
@@ -131,9 +134,18 @@ const activeConsultationPreparationUpdates = new Map<string, string>();
 const activeSessionLetterUpdates = new Map<string, string>();
 const pendingSessionLetterCycles = new Map<string, string>();
 const pendingCounselorPackageImports = new Map<string, {
+  contentHash: string;
+  expiresAt: number;
   mode: "install" | "update";
   sourceDirectory: string;
 }>();
+const COUNSELOR_PACKAGE_IMPORT_PREVIEW_TTL_MS = 10 * 60 * 1000;
+
+function pruneExpiredCounselorPackageImports(now = Date.now()) {
+  for (const [token, pendingImport] of pendingCounselorPackageImports) {
+    if (pendingImport.expiresAt <= now) pendingCounselorPackageImports.delete(token);
+  }
+}
 
 function sessionBusyFailure() {
   return failure(ERROR_CODES.BUSY, "这次咨询正在执行其他操作，请稍后再试。");
@@ -226,42 +238,8 @@ export function registerIpcHandlers(repositories?: IpcRepositories, localBackupA
 
   if (!repositories) return;
 
-  ipcMain.handle(IPC_CHANNELS.COUNSELOR_PACKAGES_INSTALL, wrapIpcHandler(async (_event, previewToken: unknown) => {
-    if (previewToken !== undefined) {
-      if (typeof previewToken !== "string") {
-        return failure(ERROR_CODES.VALIDATION_ERROR, "咨询师包导入确认信息不合法。");
-      }
-      const pendingImport = pendingCounselorPackageImports.get(previewToken);
-      pendingCounselorPackageImports.delete(previewToken);
-      if (!pendingImport) {
-        return failure(ERROR_CODES.VALIDATION_ERROR, "咨询师包导入预览已失效，请重新选择。");
-      }
-      try {
-        const installationDirectory = join(app.getPath("userData"), "counselor-packages");
-        if (pendingImport.mode === "update") {
-          const result = updateCounselorPackageFromDirectory(
-            pendingImport.sourceDirectory,
-            installationDirectory
-          );
-          return {
-            status: "updated" as const,
-            manifest: result.registration.manifest,
-            previousVersion: result.previousVersion
-          };
-        }
-        const registration = installCounselorPackageFromDirectory(
-          pendingImport.sourceDirectory,
-          installationDirectory
-        );
-        return { status: "installed" as const, manifest: registration.manifest };
-      } catch (error) {
-        return failure(
-          ERROR_CODES.VALIDATION_ERROR,
-          `咨询师包导入失败：${error instanceof Error ? error.message : "包内容不完整"}`
-        );
-      }
-    }
-
+  ipcMain.handle(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_PREVIEW, wrapIpcHandler(async () => {
+    pruneExpiredCounselorPackageImports();
     const openResult = await dialog.showOpenDialog({
       properties: ["openDirectory"],
       title: "选择 Ling AI 咨询角色包文件夹"
@@ -295,6 +273,8 @@ export function registerIpcHandlers(repositories?: IpcRepositories, localBackupA
       }
       const token = randomUUID();
       pendingCounselorPackageImports.set(token, {
+        contentHash: createCounselorPackageContentHash(sourceDirectory, registration.manifest),
+        expiresAt: Date.now() + COUNSELOR_PACKAGE_IMPORT_PREVIEW_TTL_MS,
         mode: current ? "update" : "install",
         sourceDirectory
       });
@@ -310,6 +290,61 @@ export function registerIpcHandlers(repositories?: IpcRepositories, localBackupA
         `咨询师包校验失败：${error instanceof Error ? error.message : "包内容不完整"}`
       );
     }
+  }));
+
+  ipcMain.handle(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_COMMIT, wrapIpcHandler(async (_event, previewToken: unknown) => {
+    if (typeof previewToken !== "string" || !previewToken.trim()) {
+      return failure(ERROR_CODES.VALIDATION_ERROR, "咨询师包导入确认信息不合法。");
+    }
+    const pendingImport = pendingCounselorPackageImports.get(previewToken);
+    pendingCounselorPackageImports.delete(previewToken);
+    if (!pendingImport || pendingImport.expiresAt <= Date.now()) {
+      return failure(ERROR_CODES.VALIDATION_ERROR, "咨询师包导入预览已失效，请重新选择。");
+    }
+    try {
+      const inspected = loadDirectoryCounselorPackage(pendingImport.sourceDirectory, {
+        registry: new CounselorPackageRegistry()
+      });
+      const contentHash = createCounselorPackageContentHash(
+        pendingImport.sourceDirectory,
+        inspected.manifest
+      );
+      if (contentHash !== pendingImport.contentHash) {
+        return failure(
+          ERROR_CODES.VALIDATION_ERROR,
+          "咨询师包在预览后已发生变化，请重新选择并确认。"
+        );
+      }
+      const installationDirectory = join(app.getPath("userData"), "counselor-packages");
+      if (pendingImport.mode === "update") {
+        const result = updateCounselorPackageFromDirectory(
+          pendingImport.sourceDirectory,
+          installationDirectory
+        );
+        return {
+          status: "updated" as const,
+          manifest: result.registration.manifest,
+          previousVersion: result.previousVersion
+        };
+      }
+      const registration = installCounselorPackageFromDirectory(
+        pendingImport.sourceDirectory,
+        installationDirectory
+      );
+      return { status: "installed" as const, manifest: registration.manifest };
+    } catch (error) {
+      return failure(
+        ERROR_CODES.VALIDATION_ERROR,
+        `咨询师包导入失败：${error instanceof Error ? error.message : "包内容不完整"}`
+      );
+    }
+  }));
+
+  ipcMain.handle(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_CANCEL, wrapIpcHandler(async (_event, previewToken: unknown) => {
+    if (typeof previewToken !== "string" || !previewToken.trim()) {
+      return failure(ERROR_CODES.VALIDATION_ERROR, "咨询师包导入确认信息不合法。");
+    }
+    pendingCounselorPackageImports.delete(previewToken);
   }));
 
   ipcMain.handle(IPC_CHANNELS.COUNSELOR_PACKAGES_REMOVE, wrapIpcHandler(async (_event, packageId: unknown) => {
@@ -512,12 +547,11 @@ export function registerIpcHandlers(repositories?: IpcRepositories, localBackupA
 
     const input = api as ApiSettings;
     const locale = (await repositories.settings.read())?.locale ?? "zh-CN";
-    // Settings must report only a key the user has explicitly saved. The
-    // development environment fallback remains available to actual local model
-    // calls, but must never make the configuration UI look complete.
-    const apiKey = requiresApiKey(input) ? await repositories.secrets.readApiKey() || "" : "";
+    // Test the current draft without persisting it. Never use a development
+    // environment key to make user configuration appear valid.
+    const apiKey = requiresApiKey(input) ? input.apiKey?.trim() || await repositories.secrets.readApiKey() || "" : "";
     if (requiresApiKey(input) && !apiKey) {
-      return { connected: false, message: mainCopy(locale, "请先保存 API Key，再测试连接。", "Save the API key before testing the connection.") };
+      return { connected: false, message: mainCopy(locale, "请先输入 API Key，再测试连接。", "Enter an API key before testing the connection.") };
     }
 
     try {
@@ -557,7 +591,7 @@ export function registerIpcHandlers(repositories?: IpcRepositories, localBackupA
 
     const input = api as ApiSettings;
     const locale = (await repositories.settings.read())?.locale ?? "zh-CN";
-    const apiKey = requiresApiKey(input) ? await repositories.secrets.readApiKey() || "" : "";
+    const apiKey = requiresApiKey(input) ? input.apiKey?.trim() || await repositories.secrets.readApiKey() || "" : "";
     if (requiresApiKey(input) && !apiKey) {
       return {
         models: [],

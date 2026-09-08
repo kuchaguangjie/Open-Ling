@@ -7,6 +7,73 @@ describe("settingsStore", () => {
     vi.unstubAllGlobals();
   });
 
+  it("ignores a stale connection result and prevents overlapping tests", async () => {
+    let resolve!: (value: unknown) => void;
+    const testConnection = vi.fn(() => new Promise((done) => { resolve = done; }));
+    vi.stubGlobal("lingDesktop", { settings: { testConnection } });
+    useSettingsStore.getState().updateApi({ apiKey: "first-key" });
+    const pending = useSettingsStore.getState().testConnection();
+    useSettingsStore.getState().updateApi({ apiKey: "second-key" });
+    await useSettingsStore.getState().testConnection();
+    expect(testConnection).toHaveBeenCalledTimes(1);
+    resolve({ ok: true, data: { connected: true, message: "Old result" } });
+    await pending;
+    expect(useSettingsStore.getState().connectionStatus).toBe("idle");
+    expect(useSettingsStore.getState().message).not.toBe("Old result");
+  });
+
+  it("invalidates a successful test when the configuration changes", async () => {
+    vi.stubGlobal("lingDesktop", { settings: { testConnection: vi.fn(async () => ({ ok: true, data: { connected: true, message: "OK" } })) } });
+    await useSettingsStore.getState().testConnection();
+    useSettingsStore.getState().updateApi({ apiKey: "replacement" });
+    expect(useSettingsStore.getState().connectionStatus).toBe("idle");
+  });
+
+  it("recovers from a rejected test without losing the draft", async () => {
+    vi.stubGlobal("lingDesktop", { settings: { testConnection: vi.fn(async () => { throw new Error("IPC closed"); }) } });
+    useSettingsStore.getState().updateApi({ apiKey: "draft-key" });
+    await useSettingsStore.getState().testConnection();
+    expect(useSettingsStore.getState().status).toBe("error");
+    expect(useSettingsStore.getState().api.apiKey).toBe("draft-key");
+    expect(useSettingsStore.getState().dirtySections.model).toBe(true);
+  });
+
+  it("preserves newer edits while a save is pending", async () => {
+    let resolve!: (value: unknown) => void;
+    const save = vi.fn(() => new Promise((done) => { resolve = done; }));
+    vi.stubGlobal("lingDesktop", { settings: { save, read: vi.fn().mockResolvedValueOnce({ ok: true, data: null }).mockRejectedValue(new Error("Read unavailable")) } });
+    useSettingsStore.getState().updateApi({ apiKey: "saved-draft" });
+    const pending = useSettingsStore.getState().saveSettings();
+    useSettingsStore.getState().updateApi({ apiKey: "newer-draft" });
+    await vi.waitFor(() => expect(save).toHaveBeenCalled());
+    resolve({ ok: true });
+    await pending;
+    expect(useSettingsStore.getState().api.apiKey).toBe("newer-draft");
+    expect(useSettingsStore.getState().savedApi.apiKey).toBe("");
+    expect(useSettingsStore.getState().savedApi.apiKeySaved).toBe(true);
+    expect(useSettingsStore.getState().dirtySections.model).toBe(true);
+  });
+
+  it("keeps a draft after saving fails", async () => {
+    vi.stubGlobal("lingDesktop", { settings: { save: vi.fn(async () => ({ ok: false, error: { message: "Storage unavailable" } })) } });
+    useSettingsStore.getState().updateApi({ apiKey: "draft" });
+    await useSettingsStore.getState().saveSettings();
+    expect(useSettingsStore.getState().api.apiKey).toBe("draft");
+    expect(useSettingsStore.getState().dirtySections.model).toBe(true);
+    expect(useSettingsStore.getState().status).toBe("error");
+  });
+
+  it("discards model discovery results after changing providers", async () => {
+    let resolve!: (value: unknown) => void;
+    vi.stubGlobal("lingDesktop", { settings: { listModels: vi.fn(() => new Promise((done) => { resolve = done; })) } });
+    const pending = useSettingsStore.getState().loadModels();
+    useSettingsStore.getState().updateApi({ apiBaseUrl: "https://new.example.com", modelName: "new-model" });
+    resolve({ ok: true, data: { models: [{ id: "old-model", name: "old-model" }], source: "remote", message: "Old models" } });
+    await pending;
+    expect(useSettingsStore.getState().api.modelName).toBe("new-model");
+    expect(useSettingsStore.getState().modelListStatus).toBe("idle");
+  });
+
   it("loads sanitized model settings from the desktop bridge", async () => {
     vi.stubGlobal("lingDesktop", {
       settings: {
@@ -510,16 +577,16 @@ describe("settingsStore", () => {
         apiKey: "",
         apiKeySaved: true,
         apiKeyPreview: "sk...kept",
-        modelName: "deepseek-v4-flash-vision-exp",
-        reasoningEffort: "high",
+        modelName: "custom-conversation-model",
+        reasoningEffort: undefined,
         localApiBaseUrl: "http://127.0.0.1:11434/v1",
         localModelName: "",
         remoteApiBaseUrl: "https://model.example.com/v1",
-        remoteModelName: "deepseek-v4-flash-vision-exp",
+        remoteModelName: "custom-conversation-model",
         modelAssignments: {
-          conversation: "deepseek-v4-flash-vision-exp",
-          caseConceptualization: "deepseek-v4-flash-vision-exp",
-          consultationTeam: "deepseek-v4-flash-vision-exp"
+          conversation: "custom-conversation-model",
+          caseConceptualization: "custom-conceptualization-model",
+          consultationTeam: "custom-team-model"
         }
       },
       backstageModels: {},

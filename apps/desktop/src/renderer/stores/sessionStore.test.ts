@@ -245,7 +245,7 @@ describe("sessionStore persistence", () => {
     });
     vi.spyOn(Date, "now").mockReturnValue(200);
     useSettingsStore.setState({
-      api: { apiBaseUrl: "https://api.deepseek.com", apiKey: "", modelName: "deepseek-v4-flash" }
+      savedApi: { apiBaseUrl: "https://api.deepseek.com", apiKey: "", modelName: "deepseek-v4-flash" }
     });
     useSessionStore.setState({
       activeSessionId: "s-chengling-history",
@@ -709,7 +709,7 @@ describe("sessionStore persistence", () => {
     });
     vi.spyOn(Date, "now").mockReturnValue(30);
     useSettingsStore.setState({
-      api: { apiBaseUrl: "https://api.deepseek.com", apiKey: "", modelName: "deepseek-v4-flash" }
+      savedApi: { apiBaseUrl: "https://api.deepseek.com", apiKey: "", modelName: "deepseek-v4-flash" }
     });
     useSessionStore.setState({
       currentCounselorId: "zhouzhou",

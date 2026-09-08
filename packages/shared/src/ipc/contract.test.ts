@@ -30,7 +30,9 @@ describe("IPC channel constants", () => {
     expect(typeof IPC_CHANNELS.APP_INFO).toBe("string");
     expect(IPC_CHANNELS.APP_INFO.length).toBeGreaterThan(0);
     expect(typeof IPC_CHANNELS.COUNSELOR_PACKAGES_LIST).toBe("string");
-    expect(typeof IPC_CHANNELS.COUNSELOR_PACKAGES_INSTALL).toBe("string");
+    expect(typeof IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_PREVIEW).toBe("string");
+    expect(typeof IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_COMMIT).toBe("string");
+    expect(typeof IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_CANCEL).toBe("string");
     expect(typeof IPC_CHANNELS.COUNSELOR_PACKAGES_REMOVE).toBe("string");
 
     expect(typeof IPC_CHANNELS.SETTINGS_READ).toBe("string");

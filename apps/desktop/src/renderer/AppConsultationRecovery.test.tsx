@@ -19,6 +19,20 @@ describe("App 咨询流程恢复", () => {
     vi.unstubAllGlobals();
   });
 
+  it("设置读取失败不会当成首次使用或继续使用默认设置，重试后可恢复", async () => {
+    const session = persistedSession("active");
+    writeActiveConsultationFlow({ counselorId: "chengling", sessionId: session.id, script: "returning", surface: { kind: "session" } });
+    const bridge = desktopApi(session);
+    const read = vi.fn().mockRejectedValueOnce(new Error("Settings unavailable")).mockResolvedValue({ ok: true, data: null });
+    vi.stubGlobal("lingDesktop", { ...bridge, settings: { read } });
+    render(<App />);
+    expect(await screen.findByRole("region", { name: "Ling 本机资料读取失败" })).toBeInTheDocument();
+    expect(readActiveConsultationFlow()?.sessionId).toBe(session.id);
+    expect(screen.queryByLabelText("会谈输入框")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "重新读取" }));
+    expect(await screen.findByLabelText("会谈输入框")).toBeInTheDocument();
+  });
+
   it("先读回数据库，再把 starting + active 校正为正式咨询", async () => {
     const session = persistedSession("active");
     writeActiveConsultationFlow({

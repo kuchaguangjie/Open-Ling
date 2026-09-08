@@ -9,6 +9,7 @@ import {
   counselorPackageRegistry
 } from "@shared/index";
 import {
+  createCounselorPackageContentHash,
   loadDirectoryCounselorPackage,
   resolvePackageResourcePath
 } from "./directoryCounselorPackageLoader";
@@ -102,6 +103,19 @@ describe("directory counselor package loader", () => {
     expect(registry.list()).toHaveLength(1);
     expect(registration.source).toMatchObject({ kind: "directory" });
     expect(counselorPackageRegistry.get("isolated-listener-test")).toBeUndefined();
+  });
+
+  it("fingerprints the manifest and all declared resources", () => {
+    const packageDirectory = createPackageDirectory("fingerprinted-listener-test");
+    const registration = loadDirectoryCounselorPackage(packageDirectory, {
+      registry: new CounselorPackageRegistry()
+    });
+    const initialHash = createCounselorPackageContentHash(packageDirectory, registration.manifest);
+
+    writeText(resolve(packageDirectory, "prompts/core-en.md"), "# Changed core\n");
+
+    expect(initialHash).toMatch(/^sha256:[a-f0-9]{64}$/u);
+    expect(createCounselorPackageContentHash(packageDirectory, registration.manifest)).not.toBe(initialHash);
   });
 
   it("validates and loads every declared counselor voice resource", () => {

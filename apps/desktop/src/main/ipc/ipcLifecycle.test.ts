@@ -168,7 +168,7 @@ describe("main IPC consultation lifecycle boundaries", () => {
     expect(scaffold.status, scaffold.stderr).toBe(0);
     electronMocks.showOpenDialog.mockResolvedValue({ canceled: false, filePaths: [sourceDirectory] });
 
-    const chooseResult = await handler(IPC_CHANNELS.COUNSELOR_PACKAGES_INSTALL)({});
+    const chooseResult = await handler(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_PREVIEW)({});
     expect(chooseResult).toMatchObject({
       ok: true,
       data: {
@@ -180,7 +180,7 @@ describe("main IPC consultation lifecycle boundaries", () => {
     const previewToken = (chooseResult as { data: { previewToken: string } }).data.previewToken;
     expect(counselorPackageRegistry.get("ipc-professional-listener")).toBeUndefined();
 
-    const importResult = await handler(IPC_CHANNELS.COUNSELOR_PACKAGES_INSTALL)({}, previewToken);
+    const importResult = await handler(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_COMMIT)({}, previewToken);
     expect(importResult).toMatchObject({
       ok: true,
       data: { status: "installed", manifest: { id: "ipc-professional-listener" } }
@@ -200,7 +200,7 @@ describe("main IPC consultation lifecycle boundaries", () => {
     writeFileSync(updateManifestPath, `${JSON.stringify(updateManifest, null, 2)}\n`, "utf8");
     electronMocks.showOpenDialog.mockResolvedValue({ canceled: false, filePaths: [updateDirectory] });
 
-    const updatePreview = await handler(IPC_CHANNELS.COUNSELOR_PACKAGES_INSTALL)({});
+    const updatePreview = await handler(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_PREVIEW)({});
     expect(updatePreview).toMatchObject({
       ok: true,
       data: {
@@ -210,7 +210,7 @@ describe("main IPC consultation lifecycle boundaries", () => {
       }
     });
     const updateToken = (updatePreview as { data: { previewToken: string } }).data.previewToken;
-    const updateResult = await handler(IPC_CHANNELS.COUNSELOR_PACKAGES_INSTALL)({}, updateToken);
+    const updateResult = await handler(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_COMMIT)({}, updateToken);
     expect(updateResult).toMatchObject({
       ok: true,
       data: {
@@ -220,6 +220,38 @@ describe("main IPC consultation lifecycle boundaries", () => {
       }
     });
     expect(counselorPackageRegistry.require("ipc-professional-listener").manifest.version).toBe("0.2.0");
+  });
+
+  it("rejects a changed or cancelled counselor package preview", async () => {
+    const sourceDirectory = join(tempDir, "mutable-source-package");
+    const scaffold = spawnSync(process.execPath, [
+      join(process.cwd(), "scripts/create-counselor-package.mjs"),
+      sourceDirectory,
+      "ipc-professional-listener"
+    ], { encoding: "utf8" });
+    expect(scaffold.status, scaffold.stderr).toBe(0);
+    electronMocks.showOpenDialog.mockResolvedValue({ canceled: false, filePaths: [sourceDirectory] });
+
+    const preview = await handler(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_PREVIEW)({});
+    const previewToken = (preview as { data: { previewToken: string } }).data.previewToken;
+    writeFileSync(join(sourceDirectory, "prompts/voice-zh.md"), "# 预览后被修改\n", "utf8");
+
+    await expect(handler(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_COMMIT)({}, previewToken)).resolves.toMatchObject({
+      ok: false,
+      error: { code: "VALIDATION_ERROR", message: expect.stringContaining("预览后已发生变化") }
+    });
+    expect(counselorPackageRegistry.get("ipc-professional-listener")).toBeUndefined();
+
+    const nextPreview = await handler(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_PREVIEW)({});
+    const nextToken = (nextPreview as { data: { previewToken: string } }).data.previewToken;
+    await expect(handler(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_CANCEL)({}, nextToken)).resolves.toEqual({
+      ok: true,
+      data: undefined
+    });
+    await expect(handler(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_COMMIT)({}, nextToken)).resolves.toMatchObject({
+      ok: false,
+      error: { code: "VALIDATION_ERROR", message: expect.stringContaining("已失效") }
+    });
   });
 
   it("does not use a development environment key for settings connection or model discovery", async () => {
@@ -235,7 +267,7 @@ describe("main IPC consultation lifecycle boundaries", () => {
 
       await expect(handler(IPC_CHANNELS.SETTINGS_TEST_CONNECTION)({}, api)).resolves.toMatchObject({
         ok: true,
-        data: { connected: false, message: "请先保存 API Key，再测试连接。" }
+        data: { connected: false, message: "请先输入 API Key，再测试连接。" }
       });
       await expect(handler(IPC_CHANNELS.SETTINGS_LIST_MODELS)({}, api)).resolves.toMatchObject({
         ok: true,
@@ -245,6 +277,63 @@ describe("main IPC consultation lifecycle boundaries", () => {
       if (previousDevelopmentKey === undefined) delete process.env.DEEPSEEK_API_KEY;
       else process.env.DEEPSEEK_API_KEY = previousDevelopmentKey;
     }
+  });
+
+  it.each([
+    ["", "  draft-key  ", "draft-key"],
+    ["saved-key", "new-key", "new-key"],
+    ["saved-key", "", "saved-key"],
+    ["saved-key", "   ", "saved-key"]
+  ])("tests and discovers with the current key without saving (%s, %s)", async (savedKey, draftKey, expectedKey) => {
+    if (savedKey) await repositories.secrets.saveApiKey(savedKey);
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({
+      choices: [{ message: { content: "连接成功" } }],
+      data: [{ id: "test-model" }]
+    }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    vi.stubGlobal("fetch", fetchMock);
+    const api = { apiBaseUrl: "https://models.example.com/v1", apiKey: draftKey, modelName: "test-model" };
+    await expect(handler(IPC_CHANNELS.SETTINGS_TEST_CONNECTION)({}, api)).resolves.toMatchObject({
+      ok: true, data: { connected: true }
+    });
+    await expect(handler(IPC_CHANNELS.SETTINGS_LIST_MODELS)({}, api)).resolves.toMatchObject({
+      ok: true, data: { source: "remote" }
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    for (const [, options] of fetchMock.mock.calls as unknown as Array<[string, RequestInit]>) {
+      expect(options.headers).toMatchObject({ Authorization: `Bearer ${expectedKey}` });
+    }
+    expect(await repositories.secrets.readApiKey()).toBe(savedKey || null);
+  });
+
+  it("does not retry an invalid replacement with the saved key or persist it", async () => {
+    await repositories.secrets.saveApiKey("valid-saved-key");
+    const fetchMock = vi.fn(async () => new Response("Unauthorized", { status: 401 }));
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(handler(IPC_CHANNELS.SETTINGS_TEST_CONNECTION)({}, {
+      apiBaseUrl: "https://models.example.com/v1", apiKey: "invalid-new-key", modelName: "test-model"
+    })).resolves.toMatchObject({ ok: true, data: { connected: false } });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({
+      headers: expect.objectContaining({ Authorization: "Bearer invalid-new-key" })
+    }));
+    expect(await repositories.secrets.readApiKey()).toBe("valid-saved-key");
+  });
+
+  it("saves a trimmed key, reads only a masked key, keeps a blank replacement, and deletes explicitly", async () => {
+    const settings = {
+      api: { apiBaseUrl: "https://api.deepseek.com", apiKey: "  synthetic-test-key  ", modelName: "deepseek-v4-flash" },
+      defaultCounselorId: "chengling", defaultRoomThemeId: "warm-study"
+    };
+    const save = handler(IPC_CHANNELS.SETTINGS_SAVE);
+    await expect(save({}, settings)).resolves.toMatchObject({ ok: true });
+    expect(await repositories.secrets.readApiKey()).toBe("synthetic-test-key");
+    const read = await handler(IPC_CHANNELS.SETTINGS_READ)({}) as { ok: boolean; data: typeof settings };
+    expect(read).toMatchObject({ ok: true, data: { api: { apiKey: "", apiKeySaved: true } } });
+    expect(JSON.stringify(await repositories.settings.read())).not.toContain("synthetic-test-key");
+    await expect(save({}, read.data)).resolves.toMatchObject({ ok: true });
+    expect(await repositories.secrets.readApiKey()).toBe("synthetic-test-key");
+    await expect(handler(IPC_CHANNELS.SETTINGS_API_KEY_DELETE)({})).resolves.toMatchObject({ ok: true });
+    expect(await repositories.secrets.readApiKey()).toBeNull();
   });
 
   it("returns every valid model id from an OpenAI-compatible models endpoint", async () => {

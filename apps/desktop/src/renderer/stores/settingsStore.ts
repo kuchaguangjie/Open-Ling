@@ -33,6 +33,7 @@ interface SettingsState {
   defaultRoomThemeId: string;
   profile: UserProfileSettings;
   savedApi: ApiSettings;
+  savedBackstageModels: BackstageModelSettings;
   savedAppearance: ReadingAppearanceSettings;
   savedCounseling: CounselingExperienceSettings;
   savedVoiceInput: VoiceInputSettings;
@@ -166,6 +167,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     ...defaultProfile
   },
   savedApi: { ...defaultApi },
+  savedBackstageModels: { ...defaultBackstageModels },
   savedAppearance: { ...defaultReadingAppearance },
   savedCounseling: { ...defaultCounseling },
   savedVoiceInput: structuredClone(defaultVoiceInput),
@@ -180,8 +182,9 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   updateApi: (api) =>
     set((state) => ({
       api: { ...state.api, ...api },
+      connectionStatus: "idle",
       dirtySections: { ...state.dirtySections, model: true },
-      status: "idle",
+      status: state.status === "testing" || state.status === "saving" ? state.status : "idle",
       message: ""
     })),
   updateAppearance: (appearance) =>
@@ -227,21 +230,22 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     });
   },
   updateDefaultCounselor: async (id) => {
-    set({ defaultCounselorId: id, status: "idle", message: "" });
+    const previous = get().defaultCounselorId;
+    set({ defaultCounselorId: id, message: "" });
     if (!window.lingDesktop?.settings) return;
-    const result = await window.lingDesktop.settings.save(createUserSettings(get()));
+    const result = await writeSettingsPatch({ defaultCounselorId: id });
     if (!result.ok) {
-      set({ status: "error", message: result.error.message });
+      set({ defaultCounselorId: get().defaultCounselorId === id ? previous : get().defaultCounselorId, status: "error", message: result.message });
     }
   },
   updateDisabledCounselors: async (ids) => {
     const previous = get().disabledCounselorIds;
     const disabledCounselorIds = [...new Set(ids)].sort();
-    set({ disabledCounselorIds, status: "idle", message: "" });
+    set({ disabledCounselorIds, message: "" });
     if (!window.lingDesktop?.settings) return true;
-    const result = await window.lingDesktop.settings.save(createUserSettings(get()));
+    const result = await writeSettingsPatch({ disabledCounselorIds });
     if (!result.ok) {
-      set({ disabledCounselorIds: previous, status: "error", message: result.error.message });
+      set({ disabledCounselorIds: get().disabledCounselorIds === disabledCounselorIds ? previous : get().disabledCounselorIds, status: "error", message: result.message });
       return false;
     }
     return true;
@@ -256,38 +260,44 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   loadSettings: async () => {
     if (!window.lingDesktop?.settings) return null;
     set({ status: "loading", message: "" });
-    const result = await window.lingDesktop.settings.read();
-    if (!result.ok) {
-      set({ status: "error", message: result.error.message });
+    try {
+      const result = await window.lingDesktop.settings.read();
+      if (!result.ok) {
+        set({ status: "error", message: result.error.message });
+        return null;
+      }
+      if (result.data) {
+        const locale = isSupportedLocale(result.data.locale) ? result.data.locale : "zh-CN";
+        rememberLocale(locale);
+        set({
+          api: normalizeApiSettings(result.data.api),
+          savedApi: normalizeApiSettings(result.data.api),
+          savedBackstageModels: { ...defaultBackstageModels, ...result.data.backstageModels },
+          backstageModels: { ...defaultBackstageModels, ...result.data.backstageModels },
+          appearance: normalizeAppearanceSettings(result.data.appearance),
+          savedAppearance: normalizeAppearanceSettings(result.data.appearance),
+          counseling: normalizeCounselingSettings(result.data.counseling),
+          savedCounseling: normalizeCounselingSettings(result.data.counseling),
+          voiceInput: normalizeVoiceInputSettings(result.data.voiceInput),
+          savedVoiceInput: normalizeVoiceInputSettings(result.data.voiceInput),
+          locale,
+          savedLocale: locale,
+          defaultCounselorId: result.data.defaultCounselorId,
+          disabledCounselorIds: result.data.disabledCounselorIds ?? [],
+          defaultRoomThemeId: result.data.defaultRoomThemeId,
+          profile: { ...defaultProfile, ...result.data.profile },
+          savedProfile: { ...defaultProfile, ...result.data.profile },
+          dirtySections: { model: false, voice: false, profile: false, counseling: false, appearance: false },
+          status: "idle"
+        });
+        return result.data;
+      }
+      set({ status: "idle" });
+      return null;
+    } catch {
+      set({ status: "error", message: settingsCopy("设置读取失败，请重试。现有设置没有被修改。", "Settings could not be loaded. Please try again. Existing settings were not changed.") });
       return null;
     }
-    if (result.data) {
-      const locale = isSupportedLocale(result.data.locale) ? result.data.locale : "zh-CN";
-      rememberLocale(locale);
-      set({
-        api: normalizeApiSettings(result.data.api),
-        savedApi: normalizeApiSettings(result.data.api),
-        backstageModels: { ...defaultBackstageModels, ...result.data.backstageModels },
-        appearance: normalizeAppearanceSettings(result.data.appearance),
-        savedAppearance: normalizeAppearanceSettings(result.data.appearance),
-        counseling: normalizeCounselingSettings(result.data.counseling),
-        savedCounseling: normalizeCounselingSettings(result.data.counseling),
-        voiceInput: normalizeVoiceInputSettings(result.data.voiceInput),
-        savedVoiceInput: normalizeVoiceInputSettings(result.data.voiceInput),
-        locale,
-        savedLocale: locale,
-        defaultCounselorId: result.data.defaultCounselorId,
-        disabledCounselorIds: result.data.disabledCounselorIds ?? [],
-        defaultRoomThemeId: result.data.defaultRoomThemeId,
-        profile: { ...defaultProfile, ...result.data.profile },
-        savedProfile: { ...defaultProfile, ...result.data.profile },
-        dirtySections: { model: false, voice: false, profile: false, counseling: false, appearance: false },
-        status: "idle"
-      });
-      return result.data;
-    }
-    set({ status: "idle" });
-    return null;
   },
   loadModels: async () => {
     if (!window.lingDesktop?.settings?.listModels) {
@@ -298,158 +308,212 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       });
       return;
     }
+    if (get().modelListStatus === "loading" || get().status === "saving" || get().status === "testing") return;
+    const requestedApi = get().api;
     set({ modelListStatus: "loading", message: "" });
-    const result = await window.lingDesktop.settings.listModels(get().api);
-    if (!result.ok) {
-      set({ modelListStatus: "failed", message: result.error.message });
-      return;
+    try {
+      const result = await window.lingDesktop.settings.listModels(requestedApi);
+      if (get().api !== requestedApi) {
+        set({ modelListStatus: "idle" });
+        return;
+      }
+      if (!result.ok) {
+        set({ modelListStatus: "failed", message: result.error.message });
+        return;
+      }
+      const isLocal = get().api.connectionKind === "local";
+      const nextModels = result.data.models.length > 0
+        ? result.data.models
+        : isLocal
+          ? (get().api.modelName ? [{ id: get().api.modelName, name: get().api.modelName }] : [])
+          : defaultDeepSeekModels;
+      set((state) => ({
+        availableModels: nextModels,
+        api: nextModels.some((model) => model.id === state.api.modelName)
+          ? state.api
+          : normalizeApiSettings({
+              ...state.api,
+              modelName: nextModels[0]?.id ?? state.api.modelName,
+              ...(state.api.connectionKind === "local"
+                ? { localModelName: nextModels[0]?.id ?? state.api.modelName }
+                : { remoteModelName: nextModels[0]?.id ?? state.api.modelName }),
+              modelAssignments: {
+                ...state.api.modelAssignments,
+                conversation: nextModels[0]?.id ?? state.api.modelName
+              }
+            }),
+        dirtySections: {
+          ...state.dirtySections,
+          model:
+            state.dirtySections.model ||
+            !nextModels.some((model) => model.id === state.api.modelName)
+        },
+        connectionStatus: nextModels.some((model) => model.id === state.api.modelName) ? state.connectionStatus : "idle",
+        modelListStatus:
+          result.data.source === "remote" && result.data.models.length > 0
+            ? "loaded"
+            : result.data.source === "empty"
+              ? "empty"
+              : "failed",
+        message: result.data.message
+      }));
+    } catch {
+      if (get().api !== requestedApi) {
+        set({ modelListStatus: "idle" });
+        return;
+      }
+      set({ modelListStatus: "failed", message: settingsCopy("读取模型失败，请重试。", "Could not load models. Please try again.") });
     }
-    const isLocal = get().api.connectionKind === "local";
-    const nextModels = result.data.models.length > 0
-      ? result.data.models
-      : isLocal
-        ? (get().api.modelName ? [{ id: get().api.modelName, name: get().api.modelName }] : [])
-        : defaultDeepSeekModels;
-    set((state) => ({
-      availableModels: nextModels,
-      api: nextModels.some((model) => model.id === state.api.modelName)
-        ? state.api
-        : normalizeApiSettings({
-            ...state.api,
-            modelName: nextModels[0]?.id ?? state.api.modelName,
-            ...(state.api.connectionKind === "local"
-              ? { localModelName: nextModels[0]?.id ?? state.api.modelName }
-              : { remoteModelName: nextModels[0]?.id ?? state.api.modelName }),
-            modelAssignments: {
-              ...state.api.modelAssignments,
-              conversation: nextModels[0]?.id ?? state.api.modelName
-            }
-          }),
-      dirtySections: {
-        ...state.dirtySections,
-        model:
-          state.dirtySections.model ||
-          !nextModels.some((model) => model.id === state.api.modelName)
-      },
-      modelListStatus:
-        result.data.source === "remote" && result.data.models.length > 0
-          ? "loaded"
-          : result.data.source === "empty"
-            ? "empty"
-            : "failed",
-      message: result.data.message
-    }));
   },
   saveSettings: async () => {
-    if (!window.lingDesktop?.settings) {
-      set({ status: "error", message: settingsCopy("此功能只能在 Ling 桌面 App 中使用。", "This feature is available only in the Ling desktop app.") });
-      return;
-    }
+    if (get().status === "saving" || get().status === "testing" || get().modelListStatus === "loading") return;
+    const requestedApi = get().api;
+    const requestedBackstage = get().backstageModels;
     set({ status: "saving", message: "" });
-    const saved = createSavedUserSettings(get());
-    const settings = { ...saved, api: get().api };
-    const result = await window.lingDesktop.settings.save(settings);
+    const result = await writeSettingsPatch({ api: requestedApi, backstageModels: requestedBackstage }, true);
     if (!result.ok) {
-      set({ status: "error", message: result.error.message });
+      set({ status: "error", message: result.message });
       return;
     }
-    const readResult = await window.lingDesktop.settings.read();
-    if (readResult.ok && readResult.data) {
-      set({
-        api: normalizeApiSettings(readResult.data.api),
-        savedApi: normalizeApiSettings(readResult.data.api),
-        dirtySections: { ...get().dirtySections, model: false },
-        status: "saved",
-        message: settingsCopy("配置已保存。", "Configuration saved.")
-      });
-      return;
-    }
-    const api = {
-      ...get().api,
+    const savedApi = result.refreshed?.api ? normalizeApiSettings(result.refreshed.api) : {
+      ...requestedApi,
       apiKey: "",
-      apiKeySaved: get().api.connectionKind === "local" ? get().api.apiKeySaved : true
+      apiKeySaved: Boolean(requestedApi.apiKey?.trim()) || Boolean(requestedApi.apiKeySaved),
+      apiKeyPreview: requestedApi.apiKey?.trim() ? undefined : requestedApi.apiKeyPreview
     };
-    set({ api, savedApi: api, dirtySections: { ...get().dirtySections, model: false }, status: "saved", message: settingsCopy("配置已保存。", "Configuration saved.") });
+    const unchanged = get().api === requestedApi;
+    set({
+      api: unchanged ? savedApi : get().api,
+      savedApi,
+      savedBackstageModels: requestedBackstage,
+      dirtySections: { ...get().dirtySections, model: !unchanged || get().backstageModels !== requestedBackstage },
+      status: "saved",
+      message: settingsCopy("配置已保存。", "Configuration saved.")
+    });
   },
   saveAppearance: async () => {
-    if (!window.lingDesktop?.settings) {
-      set({ status: "error", message: settingsCopy("此功能只能在 Ling 桌面 App 中使用。", "This feature is available only in the Ling desktop app.") });
-      return;
-    }
+    const requested = get().appearance;
     set({ status: "saving", message: "" });
-    const readResult = await window.lingDesktop.settings.read();
-    if (!readResult.ok) {
-      set({ status: "error", message: readResult.error.message });
-      return;
-    }
-    const baseSettings = readResult.data ?? createSavedUserSettings(get());
-    const result = await window.lingDesktop.settings.save({
-      ...baseSettings,
-      appearance: get().appearance
-    });
-    if (!result.ok) {
-      set({ status: "error", message: result.error.message });
-      return;
-    }
-    set({
-      savedAppearance: { ...get().appearance },
-      dirtySections: { ...get().dirtySections, appearance: false },
-      status: "saved",
-      message: settingsCopy("界面设置已保存在这台设备上。", "Display settings were saved on this device.")
-    });
+    const result = await writeSettingsPatch({ appearance: requested });
+    if (!result.ok) { set({ status: "error", message: result.message }); return; }
+    set({ savedAppearance: requested, dirtySections: { ...get().dirtySections, appearance: get().appearance !== requested }, status: "saved", message: settingsCopy("界面设置已保存在这台设备上。", "Display settings were saved on this device.") });
   },
   saveCounseling: async () => {
-    if (!window.lingDesktop?.settings) {
-      set({ status: "error", message: settingsCopy("此功能只能在 Ling 桌面 App 中使用。", "This feature is available only in the Ling desktop app.") });
-      return;
-    }
+    const requested = get().counseling;
     set({ status: "saving", message: "" });
-    const readResult = await window.lingDesktop.settings.read();
-    if (!readResult.ok) {
-      set({ status: "error", message: readResult.error.message });
-      return;
-    }
-    const baseSettings = readResult.data ?? createSavedUserSettings(get());
-    const result = await window.lingDesktop.settings.save({
-      ...baseSettings,
-      api: baseSettings.api,
-      backstageModels: { ...defaultBackstageModels, ...baseSettings.backstageModels },
-      counseling: get().counseling,
-      profile: baseSettings.profile
-    });
-    if (!result.ok) {
-      set({ status: "error", message: result.error.message });
-      return;
-    }
-    set({ savedCounseling: { ...get().counseling }, dirtySections: { ...get().dirtySections, counseling: false }, status: "saved", message: settingsCopy("连续性设置已保存。", "Counseling continuity settings saved.") });
+    const result = await writeSettingsPatch({ counseling: requested });
+    if (!result.ok) { set({ status: "error", message: result.message }); return; }
+    set({ savedCounseling: requested, dirtySections: { ...get().dirtySections, counseling: get().counseling !== requested }, status: "saved", message: settingsCopy("连续性设置已保存。", "Counseling continuity settings saved.") });
   },
   saveLocale: async (locale) => {
     rememberLocale(locale);
     set({ locale });
-    if (!window.lingDesktop?.settings) {
-      set({ savedLocale: locale });
-      return;
-    }
-    const readResult = await window.lingDesktop.settings.read();
-    if (!readResult.ok) {
-      set({ status: "error", message: readResult.error.message });
-      return;
-    }
-    const baseSettings = readResult.data ?? createUserSettings(get());
-    const result = await window.lingDesktop.settings.save({
-      ...baseSettings,
-      locale
-    });
+    if (!window.lingDesktop?.settings) { set({ savedLocale: locale }); return; }
+    const result = await writeSettingsPatch({ locale });
     if (!result.ok) {
-      set({ status: "error", message: result.error.message });
+      if (get().locale === locale) {
+        rememberLocale(get().savedLocale);
+        set({ locale: get().savedLocale });
+      }
+      set({ status: "error", message: result.message });
       return;
     }
-    set({
-      locale,
-      savedLocale: locale,
+    set({ savedLocale: locale });
+  },
+  saveProfile: async () => {
+    const profile = get().profile;
+    const locale = get().locale;
+    set({ status: "saving", message: "" });
+    const result = await writeSettingsPatch({ profile, locale });
+    if (!result.ok) { set({ status: "error", message: result.message }); return; }
+    set({ savedLocale: locale, savedProfile: profile, dirtySections: { ...get().dirtySections, profile: get().profile !== profile }, status: "saved", message: settingsCopy("个人资料已保存在这台设备上。", "Your profile was saved on this device.") });
+  },
+  restoreRecommendedSettings: async () => {
+    const requested = get();
+    set({ status: "saving", message: "" });
+    const result = await writeSettingsPatch((base) => ({
+      api: normalizeApiSettings({
+        ...base.api,
+        ...(base.api.connectionKind !== "local" && inferRemoteProvider(base.api.remoteProvider, base.api.apiBaseUrl) === "deepseek"
+          ? { modelName: defaultApi.modelName, remoteModelName: defaultApi.modelName, modelAssignments: defaultApi.modelAssignments }
+          : {})
+      }),
+      appearance: { ...defaultReadingAppearance },
+      counseling: { ...defaultCounseling },
+      backstageModels: { ...defaultBackstageModels }
+    }));
+    if (!result.ok) { set({ status: "error", message: result.message }); return; }
+    const api = normalizeApiSettings(result.written.api);
+    const appearance = normalizeAppearanceSettings(result.written.appearance);
+    const counseling = normalizeCounselingSettings(result.written.counseling);
+    const backstageModels = result.written.backstageModels ?? {};
+    set((state) => ({
+      api: state.api === requested.api ? api : state.api,
+      savedApi: api,
+      appearance: state.appearance === requested.appearance ? appearance : state.appearance,
+      savedAppearance: appearance,
+      counseling: state.counseling === requested.counseling ? counseling : state.counseling,
+      savedCounseling: counseling,
+      backstageModels: state.backstageModels === requested.backstageModels ? backstageModels : state.backstageModels,
+      savedBackstageModels: backstageModels,
+      dirtySections: {
+        ...state.dirtySections,
+        model: state.api !== requested.api || state.backstageModels !== requested.backstageModels,
+        appearance: state.appearance !== requested.appearance,
+        counseling: state.counseling !== requested.counseling
+      },
       status: "saved",
-      message: ""
-    });
+      connectionStatus: "idle",
+      message: settingsCopy("已恢复推荐设置。阅读显示、咨询连续性和模型选择已更新；会谈、来信、备份、个人资料与 API Key 均未改动。", "Recommended settings restored. Reading display, counseling continuity, and model selections were updated; sessions, letters, backups, your profile, and API keys were not changed.")
+    }));
+  },
+  testConnection: async () => {
+    if (!window.lingDesktop?.settings) {
+      set({ status: "error", connectionStatus: "failed", message: settingsCopy("此功能只能在 Ling 桌面 App 中使用。", "This feature is available only in the Ling desktop app.") });
+      return;
+    }
+    if (get().status === "saving" || get().status === "testing" || get().modelListStatus === "loading") return;
+    const requestedApi = get().api;
+    set({ status: "testing", connectionStatus: "idle", message: "" });
+    try {
+      const result = await window.lingDesktop.settings.testConnection(requestedApi);
+      if (get().api !== requestedApi) { set({ status: "idle", connectionStatus: "idle" }); return; }
+      if (!result.ok) { set({ status: "error", connectionStatus: "failed", message: result.error.message }); return; }
+      set({
+        status: "idle",
+        connectionStatus: result.data.connected ? "success" : "failed",
+        message: result.data.connected && get().dirtySections.model
+          ? settingsCopy("连接成功。当前修改尚未保存，请点击保存配置。", "Connection successful. Save the configuration to keep these changes.")
+          : result.data.message
+      });
+    } catch {
+      if (get().api !== requestedApi) { set({ status: "idle", connectionStatus: "idle" }); return; }
+      set({ status: "error", connectionStatus: "failed", message: settingsCopy("测试未完成，请检查网络后重试。", "The test could not finish. Check your network and try again.") });
+    }
+  },
+  deleteApiKey: async () => {
+    if (!window.lingDesktop?.settings) {
+      set({ status: "error", message: settingsCopy("此功能只能在 Ling 桌面 App 中使用。", "This feature is available only in the Ling desktop app.") });
+      return;
+    }
+    const requestedApi = get().api;
+    const bridge = window.lingDesktop.settings;
+    set({ status: "saving", message: "" });
+    const operation = settingsWriteQueue.then(() => bridge.deleteApiKey());
+    settingsWriteQueue = operation.catch(() => undefined);
+    try {
+      const result = await operation;
+      if (!result.ok) { set({ status: "error", message: result.error.message }); return; }
+      set({
+        api: { ...get().api, apiKey: get().api === requestedApi ? "" : get().api.apiKey, apiKeySaved: false, apiKeyPreview: undefined },
+        savedApi: { ...get().savedApi, apiKey: "", apiKeySaved: false, apiKeyPreview: undefined },
+        status: "saved",
+        connectionStatus: "idle",
+        message: settingsCopy("API Key 已删除。", "API key deleted.")
+      });
+    } catch {
+      set({ status: "error", message: settingsCopy("未能确认密钥是否删除，请重新读取设置后重试。", "Could not confirm whether the key was deleted. Reload settings and try again.") });
+    }
   },
   saveVoiceInput: async () => {
     if (!window.lingDesktop?.settings) {
@@ -493,20 +557,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       return;
     }
     set({ status: "saving", message: "" });
-    const readResult = await window.lingDesktop.settings.read();
-    if (!readResult.ok) {
-      set({ status: "error", message: readResult.error.message });
-      return;
-    }
-    const baseSettings = readResult.data ?? createSavedUserSettings(get());
-    const result = await window.lingDesktop.settings.save({ ...baseSettings, voiceInput });
-    if (!result.ok) {
-      set({ status: "error", message: result.error.message });
-      return;
-    }
-    const refreshed = await window.lingDesktop.settings.read();
-    const savedVoiceInput = refreshed.ok && refreshed.data?.voiceInput
-      ? normalizeVoiceInputSettings(refreshed.data.voiceInput)
+    const result = await writeSettingsPatch({ voiceInput }, true);
+    if (!result.ok) { set({ status: "error", message: result.message }); return; }
+    const savedVoiceInput = result.refreshed?.voiceInput
+      ? normalizeVoiceInputSettings(result.refreshed.voiceInput)
       : normalizeVoiceInputSettings({
           ...voiceInput,
           doubao: {
@@ -529,134 +583,20 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           }
         });
     set({
-      voiceInput: savedVoiceInput,
+      voiceInput: get().voiceInput === voiceInput ? savedVoiceInput : get().voiceInput,
       savedVoiceInput,
-      dirtySections: { ...get().dirtySections, voice: false },
+      dirtySections: { ...get().dirtySections, voice: get().voiceInput !== voiceInput },
       status: "saved",
       message: voiceInput.provider === "local"
         ? settingsCopy("已使用内置本地语音，录音不会上传。", "Built-in local voice input is selected; recordings are not uploaded.")
         : settingsCopy("云端语音识别配置已保存在这台设备上。", "Cloud speech-recognition settings were saved on this device.")
     });
   },
-  saveProfile: async () => {
-    if (!window.lingDesktop?.settings) {
-      set({ status: "error", message: settingsCopy("此功能只能在 Ling 桌面 App 中使用。", "This feature is available only in the Ling desktop app.") });
-      return;
-    }
-    set({ status: "saving", message: "" });
-    const readResult = await window.lingDesktop.settings.read();
-    if (!readResult.ok) {
-      set({ status: "error", message: readResult.error.message });
-      return;
-    }
-    const baseSettings = readResult.data ?? createSavedUserSettings(get());
-      const result = await window.lingDesktop.settings.save({
-        ...baseSettings,
-        api: baseSettings.api,
-        backstageModels: { ...defaultBackstageModels, ...baseSettings.backstageModels },
-        counseling: baseSettings.counseling,
-        locale: get().locale,
-        profile: get().profile
-    });
-    if (!result.ok) {
-      set({ status: "error", message: result.error.message });
-      return;
-    }
-    set({ savedLocale: get().locale, savedProfile: { ...get().profile }, dirtySections: { ...get().dirtySections, profile: false }, status: "saved", message: settingsCopy("个人资料已保存在这台设备上。", "Your profile was saved on this device.") });
-  },
-  restoreRecommendedSettings: async () => {
-    if (!window.lingDesktop?.settings) {
-      set({ status: "error", message: settingsCopy("此功能只能在 Ling 桌面 App 中使用。", "This feature is available only in the Ling desktop app.") });
-      return;
-    }
-    set({ status: "saving", message: "" });
-    try {
-      const readResult = await window.lingDesktop.settings.read();
-      if (!readResult.ok) {
-        set({ status: "error", message: readResult.error.message });
-        return;
-      }
-      const baseSettings = readResult.data ?? createSavedUserSettings(get());
-      const api = normalizeApiSettings({
-        ...baseSettings.api,
-        modelName: defaultApi.modelName,
-        modelAssignments: defaultApi.modelAssignments
-      });
-      const appearance = { ...defaultReadingAppearance };
-      const counseling = { ...defaultCounseling };
-      const backstageModels = { ...defaultBackstageModels };
-      const result = await window.lingDesktop.settings.save({
-        ...baseSettings,
-        api,
-        appearance,
-        backstageModels,
-        counseling
-      });
-      if (!result.ok) {
-        set({ status: "error", message: result.error.message });
-        return;
-      }
-      set({
-        api,
-        savedApi: api,
-        appearance,
-        savedAppearance: appearance,
-        backstageModels,
-        counseling,
-        savedCounseling: counseling,
-        profile: { ...defaultProfile, ...baseSettings.profile },
-        savedProfile: { ...defaultProfile, ...baseSettings.profile },
-        defaultCounselorId: baseSettings.defaultCounselorId,
-        defaultRoomThemeId: baseSettings.defaultRoomThemeId,
-        dirtySections: { model: false, voice: false, profile: false, counseling: false, appearance: false },
-        status: "saved",
-        connectionStatus: "idle",
-        message: settingsCopy("已恢复推荐设置。阅读显示、咨询连续性和模型选择已更新；会谈、来信、备份、个人资料与 API Key 均未改动。", "Recommended settings restored. Reading display, counseling continuity, and model selections were updated; sessions, letters, backups, your profile, and API keys were not changed.")
-      });
-    } catch {
-      set({ status: "error", message: settingsCopy("没有完成恢复推荐设置。现有资料没有被清空，请稍后重试。", "Recommended settings could not be restored. Existing information was not cleared. Please try again.") });
-    }
-  },
-  testConnection: async () => {
-    if (!window.lingDesktop?.settings) {
-      set({ status: "error", connectionStatus: "failed", message: settingsCopy("此功能只能在 Ling 桌面 App 中使用。", "This feature is available only in the Ling desktop app.") });
-      return;
-    }
-    set({ status: "testing", connectionStatus: "idle", message: "" });
-    const result = await window.lingDesktop.settings.testConnection(get().api);
-    if (!result.ok) {
-      set({ status: "error", connectionStatus: "failed", message: result.error.message });
-      return;
-    }
-    set({
-      status: "idle",
-      connectionStatus: result.data.connected ? "success" : "failed",
-      message: result.data.message
-    });
-  },
-  deleteApiKey: async () => {
-    if (!window.lingDesktop?.settings) {
-      set({ status: "error", message: settingsCopy("此功能只能在 Ling 桌面 App 中使用。", "This feature is available only in the Ling desktop app.") });
-      return;
-    }
-    set({ status: "saving", message: "" });
-    const result = await window.lingDesktop.settings.deleteApiKey();
-    if (!result.ok) {
-      set({ status: "error", message: result.error.message });
-      return;
-    }
-    set({
-      api: { ...get().api, apiKey: "", apiKeySaved: false, apiKeyPreview: undefined },
-      savedApi: { ...get().savedApi, apiKey: "", apiKeySaved: false, apiKeyPreview: undefined },
-      dirtySections: { ...get().dirtySections, model: false },
-      status: "saved",
-      connectionStatus: "idle",
-      message: settingsCopy("API Key 已删除。", "API key deleted.")
-    });
-  },
   discardUnsavedChanges: () =>
     set((state) => ({
       api: { ...state.savedApi },
+      backstageModels: { ...state.savedBackstageModels },
+      connectionStatus: "idle",
       appearance: { ...state.savedAppearance },
       counseling: { ...state.savedCounseling },
       voiceInput: structuredClone(state.savedVoiceInput),
@@ -666,6 +606,36 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       message: ""
     }))
 }));
+
+let settingsWriteQueue: Promise<unknown> = Promise.resolve();
+
+type SettingsWriteResult = { ok: true; written: UserSettings; refreshed?: UserSettings | null } | { ok: false; message: string };
+
+function writeSettingsPatch(patch: Partial<UserSettings> | ((base: UserSettings) => Partial<UserSettings>), refresh = false): Promise<SettingsWriteResult> {
+  const bridge = window.lingDesktop?.settings;
+  const operation = settingsWriteQueue.then(async (): Promise<SettingsWriteResult> => {
+    if (!bridge) return { ok: false, message: settingsCopy("此功能只能在 Ling 桌面 App 中使用。", "This feature is available only in the Ling desktop app.") };
+    try {
+      const read = typeof bridge.read === "function" ? await bridge.read() : undefined;
+      if (read && !read.ok) return { ok: false, message: read.error.message };
+      const base = read?.data ?? createSavedUserSettings(useSettingsStore.getState());
+      const written = { ...base, ...(typeof patch === "function" ? patch(base) : patch) };
+      const result = await bridge.save(written);
+      if (!result.ok) return { ok: false, message: result.error.message };
+      if (refresh && typeof bridge.read === "function") {
+        try {
+          const refreshed = await bridge.read();
+          if (refreshed.ok) return { ok: true, written, refreshed: refreshed.data };
+        } catch { /* Saving succeeded; retain its sanitized snapshot. */ }
+      }
+      return { ok: true, written };
+    } catch {
+      return { ok: false, message: settingsCopy("设置未能保存，请重试。", "Settings could not be saved. Please try again.") };
+    }
+  });
+  settingsWriteQueue = operation;
+  return operation;
+}
 
 export function resetSettingsStore() {
   useSettingsStore.setState({
@@ -681,6 +651,7 @@ export function resetSettingsStore() {
     defaultRoomThemeId,
     profile: { ...defaultProfile },
     savedApi: { ...defaultApi },
+    savedBackstageModels: { ...defaultBackstageModels },
     savedAppearance: { ...defaultReadingAppearance },
     savedCounseling: { ...defaultCounseling },
     savedVoiceInput: structuredClone(defaultVoiceInput),
@@ -694,33 +665,13 @@ export function resetSettingsStore() {
   });
 }
 
-function createUserSettings(
-  state: Pick<
-    SettingsState,
-    "api" | "appearance" | "backstageModels" | "counseling" | "voiceInput" | "defaultCounselorId" | "disabledCounselorIds" | "defaultRoomThemeId" | "locale" | "profile"
-  >
-): UserSettings {
-  return {
-    api: state.api,
-    appearance: state.appearance,
-    backstageModels: state.backstageModels,
-    counseling: state.counseling,
-    voiceInput: state.voiceInput,
-    locale: state.locale,
-    defaultCounselorId: state.defaultCounselorId,
-    disabledCounselorIds: state.disabledCounselorIds,
-    defaultRoomThemeId: state.defaultRoomThemeId,
-    profile: state.profile
-  };
-}
-
 function createSavedUserSettings(
-  state: Pick<SettingsState, "savedApi" | "savedAppearance" | "savedCounseling" | "savedVoiceInput" | "savedLocale" | "savedProfile" | "defaultCounselorId" | "disabledCounselorIds" | "defaultRoomThemeId" | "backstageModels">
+  state: Pick<SettingsState, "savedApi" | "savedAppearance" | "savedCounseling" | "savedVoiceInput" | "savedLocale" | "savedProfile" | "defaultCounselorId" | "disabledCounselorIds" | "defaultRoomThemeId" | "savedBackstageModels">
 ): UserSettings {
   return {
     api: state.savedApi,
     appearance: state.savedAppearance,
-    backstageModels: state.backstageModels,
+    backstageModels: state.savedBackstageModels,
     counseling: state.savedCounseling,
     voiceInput: state.savedVoiceInput,
     locale: state.savedLocale,

@@ -8,6 +8,8 @@ export type {
 export type { Counselor, CounselorApproach } from "./types/counselor.js";
 export type {
   CounselorPackageLicense,
+  CounselorPackageImportCommitResult,
+  CounselorPackageImportPreviewResult,
   CounselorPackageInstallResult,
   CounselorPackageLocaleContent,
   CounselorPackageManifest,

@@ -46,7 +46,7 @@ describe("ResourceTableFeature", () => {
     expect(within(reader).getByRole("navigation", { name: "使用帮助目录" })).toBeInTheDocument();
     expect(within(reader).getByRole("heading", { name: "认识 Ling 和群心心理工作室" })).toBeInTheDocument();
     expect(within(reader).getByText(/采用 Apache-2.0 开源许可/)).toBeInTheDocument();
-    expect(within(reader).getByText(/项目说明与咨询师扩展规范将在公开仓库开放后提供/)).toBeInTheDocument();
+    expect(within(reader).getByText(/项目说明与咨询师扩展规范可在公开仓库中查看/)).toBeInTheDocument();
     expect(reader).not.toHaveTextContent(/github\.com\/Ling-Team\/Open-Ling/);
     expect(within(reader).getByText(/相关设计和内部测试不构成执业资质、临床验证或效果保证/)).toBeInTheDocument();
 
@@ -163,8 +163,8 @@ describe("ResourceTableFeature", () => {
     expect(screen.getByRole("article", { name: "使用帮助" })).toHaveClass("resource-document-reader");
     expect(container.querySelector(".resource-document-reader-layout")).toBeInTheDocument();
     expect(screen.getByLabelText("群心心理工作室")).toBeInTheDocument();
-    expect(screen.getByLabelText("文档版本 2026.08.08")).toBeInTheDocument();
-    expect(screen.getByText("版本 2026.08.08 · © 2026 Ling-Team")).toBeInTheDocument();
+    expect(screen.getByLabelText("文档版本 2026.09.07")).toBeInTheDocument();
+    expect(screen.getByText("版本 2026.09.07 · © 2026 Ling-Team")).toBeInTheDocument();
     expect(screen.queryByText("资料桌 · 工作室使用资料")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "返回资料目录" }));

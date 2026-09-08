@@ -31,7 +31,8 @@ import type {
   VoiceRecognitionEvent,
   VoiceRecognitionStartRequest,
   CounselorPackageManifest,
-  CounselorPackageInstallResult,
+  CounselorPackageImportCommitResult,
+  CounselorPackageImportPreviewResult,
   CounselorPackageRemoveResult,
   AppUpdateStatus
 } from "../../../../packages/shared/src/index.js";
@@ -45,7 +46,9 @@ const IPC_CHANNELS = {
   APP_UPDATE_OPEN_DOWNLOAD: "ling:app:update-open-download",
   APP_UPDATE_STATUS_CHANGED: "ling:app:update-status-changed",
   COUNSELOR_PACKAGES_LIST: "ling:counselor-packages:list",
-  COUNSELOR_PACKAGES_INSTALL: "ling:counselor-packages:install",
+  COUNSELOR_PACKAGES_IMPORT_PREVIEW: "ling:counselor-packages:import-preview",
+  COUNSELOR_PACKAGES_IMPORT_COMMIT: "ling:counselor-packages:import-commit",
+  COUNSELOR_PACKAGES_IMPORT_CANCEL: "ling:counselor-packages:import-cancel",
   COUNSELOR_PACKAGES_REMOVE: "ling:counselor-packages:remove",
   SETTINGS_READ: "ling:settings:read",
   SETTINGS_SAVE: "ling:settings:save",
@@ -134,9 +137,13 @@ contextBridge.exposeInMainWorld("lingDesktop", {
     list: () => ipcRenderer.invoke(IPC_CHANNELS.COUNSELOR_PACKAGES_LIST) as Promise<
       IpcSuccess<CounselorPackageManifest[]> | IpcFailure
     >,
-    install: (previewToken?: string) => ipcRenderer.invoke(IPC_CHANNELS.COUNSELOR_PACKAGES_INSTALL, previewToken) as Promise<
-      IpcSuccess<CounselorPackageInstallResult> | IpcFailure
+    previewImport: () => ipcRenderer.invoke(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_PREVIEW) as Promise<
+      IpcSuccess<CounselorPackageImportPreviewResult> | IpcFailure
     >,
+    commitImport: (previewToken: string) => ipcRenderer.invoke(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_COMMIT, previewToken) as Promise<
+      IpcSuccess<CounselorPackageImportCommitResult> | IpcFailure
+    >,
+    cancelImport: (previewToken: string) => ipcRenderer.invoke(IPC_CHANNELS.COUNSELOR_PACKAGES_IMPORT_CANCEL, previewToken) as Promise<IpcSuccess<void> | IpcFailure>,
     remove: (packageId: string) => ipcRenderer.invoke(IPC_CHANNELS.COUNSELOR_PACKAGES_REMOVE, packageId) as Promise<
       IpcSuccess<CounselorPackageRemoveResult> | IpcFailure
     >

@@ -205,6 +205,9 @@ export function App() {
         if (cancelled) return;
         const storedFlow = useConsultationFlowStore.getState().restore();
         storedSettings = await loadSettings();
+        if (useSettingsStore.getState().status === "error") {
+          throw new Error("Settings could not be restored");
+        }
         if (storedSettings) useSessionStore.getState().applyUserSettings(storedSettings);
         if (!skipStartupPresentation) setStartupPhase("reading-sessions");
         const [loaded] = await Promise.all([

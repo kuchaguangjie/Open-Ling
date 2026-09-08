@@ -9,7 +9,7 @@ export const englishUserGuideGroups: UserGuideGroup[] = [
         id: "meet-ling",
         navigationLabel: "Meet Ling and the studio",
         title: "Meet Ling and Qunxin Psychology Studio",
-        lead: "Ling is an AI counseling app released under the Apache-2.0 License. Qunxin Psychology Studio is the in-app setting for Ling’s AI counselor team. On your first visit, you can read the welcome and privacy information and look around the studio first; password, recovery-code, and model setup happen before your first session.",
+        lead: "Ling is an AI counseling app released under the Apache-2.0 License. Qunxin Psychology Studio is the in-app setting for Ling’s AI counselor team. On your first visit, you can read the welcome and privacy information and look around the studio first; model connection and informed consent are guided before your first session, with optional local password setup.",
         points: [
           { label: "Three counseling characters", text: "Cheng Ling, Zhou Zhou, and Lin Leshui are powered by large language models. They are not human counselors working at another computer." },
           { label: "Designed for counseling", text: "Ling is not a general model with different names attached. It includes counselor foundations, session methods, safety boundaries, context and memory handling, and post-session workflows designed for AI counseling." },
@@ -17,7 +17,47 @@ export const englishUserGuideGroups: UserGuideGroup[] = [
           { label: "Scope of use", text: "“AI counseling” here means supportive AI conversation and self-exploration. It cannot replace qualified counseling, psychotherapy, psychiatric care, medical diagnosis, or crisis intervention." },
           { label: "Entering the waiting room", text: "On your first visit, Cheng Ling offers a brief welcome at reception. After that, the three counselors take turns by date. Soft glowing points open different areas, while the bottom bar provides direct access to counselor letters, booking, and settings." }
         ],
-        note: "You do not have to agree with everything the AI says or disclose anything you do not wish to share. Project information and the counselor-extension specification will be available when the public repository opens. For questions about the product, privacy, safety, or informed consent, contact openling@xiaoqunpsy.cn."
+        note: "You do not have to agree with everything the AI says or disclose anything you do not wish to share. Project information and the counselor-extension specification are available in the public repository. For questions about the product, privacy, safety, or informed consent, contact openling@xiaoqunpsy.cn."
+      },
+      {
+        "id": "first-steps",
+        "navigationLabel": "Where to begin",
+        "title": "Where to begin",
+        "lead": "Explore the studio first and decide whether to begin a formal session. You do not need AI expertise or to complete every setting at once.",
+        "steps": [
+          "Explore reception, the counselor portraits, the bookcase, and the garden.",
+          "Choose Book a session in the bottom bar and select a counselor. An unfinished session with that counselor will reopen first.",
+          "Follow the required model-connection and informed-consent steps. Set a local password or skip it where offered.",
+          "Read or skip the opening, then type and send your first message. Voice transcription also waits for you to send it.",
+          "Return to the waiting room for a break. End this session when you want organization and letter writing to begin."
+        ],
+        "note": "Reception small talk consists of prewritten introductions. It is not a freeform AI session, does not call a model, and creates no counseling record."
+      },
+      {
+        "id": "connect-model",
+        "navigationLabel": "Models and API keys",
+        "title": "Models and API keys",
+        "lead": "A model is the AI that generates responses, and a provider is the platform offering it. An API key is a special string from that platform which allows Ling to use services through your account. It is not a password or verification code.",
+        "steps": [
+          "Sign up or log in on the provider’s official website. Open its developer platform or API console, create an API key, and copy it.",
+          "Open Settings → Model connection, select the same provider, and paste the key. You can keep the preset URL and model initially.",
+          "Test the connection without saving first. After success, save the configuration and wait for confirmation."
+        ],
+        "points": [
+          {
+            "label": "The service address",
+            "text": "The Base URL is an API endpoint, not a chat webpage. Usually keep the preset; custom services require the compatible API address supplied by the provider."
+          },
+          {
+            "label": "Cost and privacy",
+            "text": "API calls may cost money, and chat subscriptions may not include API credit. Keep keys private like passwords. Online services receive the counseling content needed to respond."
+          },
+          {
+            "label": "Local models",
+            "text": "First start a model service in Ollama or LM Studio. Then detect, select, test, and save in Ling. Ling does not download or start the model."
+          }
+        ],
+        "note": "The connection guide at the top of Model connection includes five detailed steps, key replacement, and troubleshooting. Testing does not save. A blank field keeps the saved key."
       },
       {
         id: "choose-counselor",
@@ -86,7 +126,7 @@ export const englishUserGuideGroups: UserGuideGroup[] = [
           { marker: "↪", action: "Return to waiting room", description: "Leaves the counseling room temporarily without ending the session." },
           { marker: "×", action: "End this session", description: "After confirmation, makes the session read-only while Ling begins post-session processing and prepares a counselor letter." }
         ],
-        note: "After ending, you may still choose “Continue this session.” The input reopens, and Ling does not use unfinished post-session materials or letters from the earlier ending attempt."
+        note: "Only the most recently ended session with the same counselor can be continued, and only if no other session is unfinished. Unsent text and attachments are kept only during this app run, not after quitting or restarting. Check drafts before ending or starting anew."
       }
     ]
   },
@@ -114,7 +154,7 @@ export const englishUserGuideGroups: UserGuideGroup[] = [
         lead: "The left side of the counseling room lists unfinished and past sessions for the current counselor. “Session Records” beside the waiting-room sofa provides a combined view of ended conversations.",
         points: [
           { label: "Switch", text: "Select a session title." },
-          { label: "New session", text: "Select “+”. If the counselor already has an unfinished session, continue it or move it through the ending flow before starting a new one." },
+          { label: "New session", text: "Select “+” in the counseling room. If messages or unsent drafts exist, confirm before ending the old session and starting a new one. Unsent drafts are not carried over. To keep talking, stay in the current session." },
           { label: "Find", text: "When past sessions are present, use the search field above them." },
           { label: "Organize", text: "Open a session’s action menu to rename it and, when the deletion conditions are met, delete it." }
         ],
@@ -158,7 +198,7 @@ export const englishUserGuideGroups: UserGuideGroup[] = [
         points: [
           { label: "Ling itself", text: "The official distributor does not charge a software download or usage fee." },
           { label: "Where fees come from", text: "Generating replies, session materials, and letters calls a model service. With cloud services such as DeepSeek, Kimi, GLM, or Qwen, the provider bills you at its own rates, and its own rules govern credits, discounts, rate limits, and your account." },
-          { label: "Local models", text: "With a local model, content does not leave this device and no provider call fees are incurred." },
+          { label: "Local models", text: "When the service really runs on this device, there are no remote model call fees. A LAN or other device address sends requests to that address." },
           { label: "Review usage", text: "Under “Settings → Usage & fees,” review token usage for today and the last 7 days, grouped by provider and model." },
           { label: "How fees work", text: "Ling records only token counts and does not calculate or display currency amounts. Fees are computed from the provider’s official unit prices and appear in your provider account bill." }
         ],
@@ -176,7 +216,7 @@ export const englishUserGuideGroups: UserGuideGroup[] = [
         title: "Explore the waiting room",
         lead: "You are welcome to look around the studio without beginning a session.",
         points: [
-          { label: "Reception", text: "Speak with the counselor on duty to learn about the studio or choose counseling." },
+          { label: "Reception", text: "Explore prewritten introductions to the studio. Reception small talk does not call a model or create a counseling record. Book a session to discuss your own experiences." },
           { label: "Counselor portraits", text: "Open the three counselor introductions and book a session." },
           { label: "Bookcase", text: "Read fictional stories created for the three counselors." },
           { label: "Garden", text: "Switch between sun and rain and natural sounds, or follow the light on the lake through a breathing practice that can be paused or ended at any time." },
@@ -203,6 +243,7 @@ export const englishUserGuideGroups: UserGuideGroup[] = [
       },
       {
         id: "settings",
+        note: "Most settings require saving on their page; language changes save immediately. When leaving with pending changes, return to edit or discard them. Existing sessions and records are not automatically translated.",
         navigationLabel: "Adjust settings",
         title: "Adjust settings",
         lead: "Select “Settings” in the waiting-room bar to manage Ling’s model, voice input, profile, language, counseling continuity, data, privacy, and reading preferences.",

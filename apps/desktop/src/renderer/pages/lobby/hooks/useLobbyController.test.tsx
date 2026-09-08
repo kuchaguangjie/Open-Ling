@@ -14,9 +14,32 @@ describe("useLobbyController direct consultation entry", () => {
     resetSessionStore();
     resetConsultationFlowStore();
     resetSettingsStore();
-    useSettingsStore.setState((state) => ({ api: { ...state.api, apiKeySaved: true } }));
+    useSettingsStore.setState((state) => ({ savedApi: { ...state.savedApi, apiKeySaved: true } }));
     vi.unstubAllGlobals();
     markInformedConsentConfirmed("chengling");
+  });
+
+  it("未保存的 API 草稿不能跳过正式咨询的模型配置", () => {
+    vi.stubGlobal("lingDesktop", { settings: {} });
+    useSettingsStore.setState((state) => ({ savedApi: { ...state.savedApi, apiKeySaved: false }, api: { ...state.api, apiKey: "draft-key" } }));
+    const { result } = renderHook(() => useLobbyController());
+    act(() => result.current.bookAndEnterRoom("chengling"));
+    expect(result.current.showModelConnection).toBe(true);
+    expect(useSessionStore.getState().sessions).toHaveLength(0);
+  });
+
+  it("预约已离开时，迟到的历史读取不会继续创建会谈", async () => {
+    let resolve!: (value: number) => void;
+    const visits = vi.spyOn(useSessionStore.getState(), "getCounselorVisitCount").mockReturnValue(new Promise<number>((done) => { resolve = done; }));
+    const create = vi.spyOn(useSessionStore.getState(), "createDraftSession");
+    try {
+      const { result, unmount } = renderHook(() => useLobbyController());
+      act(() => result.current.bookAndEnterRoom("chengling"));
+      unmount();
+      await act(async () => { resolve(0); });
+      expect(create).not.toHaveBeenCalled();
+      expect(useAppStore.getState().activePage).toBe("lobby");
+    } finally { visits.mockRestore(); create.mockRestore(); }
   });
 
   it("再次点击同一位咨询师时直接回到尚未结束的会谈", async () => {
@@ -72,7 +95,7 @@ describe("useLobbyController direct consultation entry", () => {
   it("桌面端没有配置模型时，先补连 API，再进入知情同意", () => {
     vi.stubGlobal("lingDesktop", { settings: {} });
     window.localStorage.clear();
-    act(() => useSettingsStore.setState((state) => ({ api: { ...state.api, apiKeySaved: false, apiKey: "" } })));
+    act(() => useSettingsStore.setState((state) => ({ savedApi: { ...state.savedApi, apiKeySaved: false, apiKey: "" } })));
     const { result } = renderHook(() => useLobbyController());
 
     act(() => result.current.bookAndEnterRoom("linyueshui"));
@@ -89,7 +112,7 @@ describe("useLobbyController direct consultation entry", () => {
 
   it("开发网页版使用本地代理，不要求在浏览器填写 API Key", () => {
     window.localStorage.clear();
-    act(() => useSettingsStore.setState((state) => ({ api: { ...state.api, apiKeySaved: false, apiKey: "" } })));
+    act(() => useSettingsStore.setState((state) => ({ savedApi: { ...state.savedApi, apiKeySaved: false, apiKey: "" } })));
     const { result } = renderHook(() => useLobbyController());
 
     act(() => result.current.bookAndEnterRoom("linyueshui"));
@@ -141,7 +164,7 @@ describe("useLobbyController direct consultation entry", () => {
 
   it("暂不连接时回到预约，不创建会谈", () => {
     vi.stubGlobal("lingDesktop", { settings: {} });
-    act(() => useSettingsStore.setState((state) => ({ api: { ...state.api, apiKeySaved: false, apiKey: "" } })));
+    act(() => useSettingsStore.setState((state) => ({ savedApi: { ...state.savedApi, apiKeySaved: false, apiKey: "" } })));
     const { result } = renderHook(() => useLobbyController());
 
     act(() => result.current.bookAndEnterRoom("chengling"));
