@@ -73,6 +73,11 @@ export function AccessLockScreen({ onUnlocked }: { onUnlocked: () => void }) {
             <p>{t("lock.passwordBody")}</p>
             <label>
               <span>{t("lock.password")}</span>
+              {/* No length or minimum check here, by design: a vault created
+                  before the 8-digit floor still holds a shorter password, and
+                  the main process is the only place that can tell a right one
+                  from a wrong one. Shortening this would lock existing users
+                  out of their own data. */}
               <input autoComplete="current-password" autoFocus inputMode="numeric" onChange={(event) => setPassword(event.target.value.replace(/\D/gu, ""))} pattern="[0-9]*" type="password" value={password} />
             </label>
             <button className="access-lock-primary" disabled={isBusy || !password} type="submit">

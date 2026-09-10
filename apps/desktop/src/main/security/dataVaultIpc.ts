@@ -10,7 +10,9 @@ import {
   createDataVault,
   createDeviceProtectedDataVault,
   DataVault,
+  isLegacyPin,
   loadDataVault,
+  MIN_PIN_LENGTH,
   validatePin
 } from "./dataVault.js";
 import { validateRecoveryPhrase } from "./accessLock.js";
@@ -22,6 +24,12 @@ export interface DataVaultRuntime {
   db: LingDatabase | null;
   dataKey: Buffer | null;
   skipAccessLock?: boolean;
+  /**
+   * Set when the last successful unlock used a password shorter than the
+   * current floor. Held in memory only — it is re-derived on every unlock, so
+   * it clears itself once the user changes their password.
+   */
+  pinUpgradeRecommended?: boolean;
   onUnlocked: (vault: DataVault, dataKey: Buffer) => Promise<void>;
   onLockRequested: () => Promise<void>;
 }
@@ -34,7 +42,8 @@ export function registerDataVaultIpcHandlers(runtime: DataVaultRuntime) {
         configured: Boolean(runtime.vault),
         enabled: true,
         unlocked: true,
-        graceMinutes: runtime.vault?.getGraceMinutes() ?? 5
+        graceMinutes: runtime.vault?.getGraceMinutes() ?? 5,
+        pinUpgradeRecommended: Boolean(runtime.pinUpgradeRecommended)
       };
     }
     const vault = runtime.vault ?? await loadDataVault(runtime.vaultPath, runtime.databasePath);
@@ -43,7 +52,8 @@ export function registerDataVaultIpcHandlers(runtime: DataVaultRuntime) {
       configured: Boolean(vault),
       enabled: Boolean(vault && (vault.isPasswordEnabled() || !runtime.db)),
       unlocked: Boolean(runtime.db),
-      graceMinutes: runtime.vault?.getGraceMinutes() ?? 5
+      graceMinutes: runtime.vault?.getGraceMinutes() ?? 5,
+      pinUpgradeRecommended: Boolean(runtime.pinUpgradeRecommended)
     };
   }));
 
@@ -72,7 +82,7 @@ export function registerDataVaultIpcHandlers(runtime: DataVaultRuntime) {
   }));
 
   ipcMain.handle(IPC_CHANNELS.ACCESS_LOCK_SETUP, wrapIpcHandler(async (_event, input: unknown) => {
-    if (!isPinSetupInput(input)) return failure(ERROR_CODES.VALIDATION_ERROR, "请设置 6 位以上的数字密码，并保存恢复码。");
+    if (!isPinSetupInput(input)) return failure(ERROR_CODES.VALIDATION_ERROR, `请设置 ${MIN_PIN_LENGTH} 位以上的数字密码，并保存恢复码。`);
     const passwordError = validatePin(input.password);
     if (passwordError) return failure(ERROR_CODES.VALIDATION_ERROR, passwordError);
     const phraseError = validateRecoveryPhrase(input.recoveryPhrase);
@@ -86,6 +96,7 @@ export function registerDataVaultIpcHandlers(runtime: DataVaultRuntime) {
         const dataKey = runtime.dataKey ?? await existingVault.unlockWithDevice(safeStorage);
         await existingVault.enablePassword(dataKey, input.password, input.recoveryPhrase);
         runtime.vault = existingVault;
+        runtime.pinUpgradeRecommended = false;
         await runtime.onUnlocked(existingVault, dataKey);
         return;
       } catch {
@@ -100,6 +111,7 @@ export function registerDataVaultIpcHandlers(runtime: DataVaultRuntime) {
     });
     const dataKey = await vault.unlock(input.password);
     runtime.vault = vault;
+    runtime.pinUpgradeRecommended = false;
     await runtime.onUnlocked(vault, dataKey);
   }));
 
@@ -109,11 +121,14 @@ export function registerDataVaultIpcHandlers(runtime: DataVaultRuntime) {
     if (!vault) return failure(ERROR_CODES.VALIDATION_ERROR, "还没有设置密码。");
     let dataKey: Buffer;
     try {
+      // Deliberately no length check: a vault created before the current floor
+      // holds a shorter password, and only a successful unwrap proves it right.
       dataKey = await vault.unlock(password);
     } catch {
       return failure(ERROR_CODES.VALIDATION_ERROR, "密码不正确，请重新输入。");
     }
     runtime.vault = vault;
+    runtime.pinUpgradeRecommended = isLegacyPin(password);
     await runtime.onUnlocked(vault, dataKey);
   }));
 
@@ -128,6 +143,7 @@ export function registerDataVaultIpcHandlers(runtime: DataVaultRuntime) {
     try {
       const dataKey = await vault.recover(input.recoveryPhrase, input.newPassword);
       runtime.vault = vault;
+      runtime.pinUpgradeRecommended = false;
       await runtime.onUnlocked(vault, dataKey);
     } catch {
       return failure(ERROR_CODES.VALIDATION_ERROR, "恢复码不正确，请按原样输入。");
@@ -143,6 +159,7 @@ export function registerDataVaultIpcHandlers(runtime: DataVaultRuntime) {
     try {
       await vault.changePassword(input.currentPassword, input.newPassword);
       runtime.vault = vault;
+      runtime.pinUpgradeRecommended = false;
     } catch {
       return failure(ERROR_CODES.VALIDATION_ERROR, "当前密码不正确，请重新输入。");
     }
@@ -171,6 +188,7 @@ export function registerDataVaultIpcHandlers(runtime: DataVaultRuntime) {
     try {
       const dataKey = await vault.disablePassword(password, safeStorage);
       runtime.vault = vault;
+      runtime.pinUpgradeRecommended = false;
       await runtime.onUnlocked(vault, dataKey);
     } catch {
       return failure(ERROR_CODES.VALIDATION_ERROR, "当前密码不正确，请重新输入。");

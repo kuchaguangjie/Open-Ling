@@ -42,6 +42,7 @@ const dataVaultRuntime: DataVaultRuntime = {
   vault: null,
   db: null,
   dataKey: null,
+  pinUpgradeRecommended: false,
   onUnlocked: unlockRuntime,
   onLockRequested: lockRuntime
 };
@@ -100,6 +101,7 @@ async function lockRuntime() {
   if (dataVaultRuntime.db) dataVaultRuntime.db.close();
   dataVaultRuntime.db = null;
   dataVaultRuntime.dataKey = null;
+  dataVaultRuntime.pinUpgradeRecommended = false;
   repositoriesHolder.current = null;
   await clearGraceSession(join(app.getPath("userData"), "security", "grace-session.json")).catch(() => undefined);
 }

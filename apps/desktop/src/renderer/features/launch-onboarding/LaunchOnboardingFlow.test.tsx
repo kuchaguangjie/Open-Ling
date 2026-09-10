@@ -112,8 +112,8 @@ describe("首次启动引导", () => {
     fireEvent.click(screen.getByRole("button", { name: "暂时跳过，继续" }));
     expect(await screen.findByRole("heading", { name: "为你的本地资料设置一把锁" })).toBeInTheDocument();
     expect(screen.getByText("03 / 03")).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("数字密码"), { target: { value: "123456" } });
-    fireEvent.change(screen.getByLabelText("再次输入"), { target: { value: "123456" } });
+    fireEvent.change(screen.getByLabelText("数字密码"), { target: { value: "12345678" } });
+    fireEvent.change(screen.getByLabelText("再次输入"), { target: { value: "12345678" } });
     fireEvent.click(screen.getByRole("checkbox", { name: /我已保存恢复码/ }));
     fireEvent.click(screen.getByRole("button", { name: "设置完成，进入工作室" }));
 

@@ -1445,6 +1445,7 @@ function PasswordProtectionSection() {
   const [configured, setConfigured] = useState(false);
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const [graceMinutes, setGraceMinutes] = useState(5);
+  const [pinUpgradeRecommended, setPinUpgradeRecommended] = useState(false);
   const [mode, setMode] = useState<"summary" | "setup" | "change" | "disable">("summary");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -1475,6 +1476,7 @@ function PasswordProtectionSection() {
       setConfigured(result.data.configured ?? result.data.enabled);
       setEnabled(result.data.enabled);
       setGraceMinutes(result.data.graceMinutes ?? 5);
+      setPinUpgradeRecommended(result.data.pinUpgradeRecommended ?? false);
     } else {
       setEnabled(false);
     }
@@ -1615,6 +1617,15 @@ function PasswordProtectionSection() {
               <p>{enabled ? l("开启后，Ling 会在启动时验证密码；忘记时可使用恢复码重设。", "When enabled, Ling verifies your password at startup; the recovery code can reset it if forgotten.") : configured ? l("启动时直接进入 Ling。数据库仍保持加密，密钥由系统安全存储保管。", "Ling opens directly. The database stays encrypted and its key is protected by system secure storage.") : l("开启后，Ling 会加密本地资料，并在启动时验证密码。", "When enabled, Ling encrypts local information and verifies your password at startup.")}</p>
             </div>
           </div>
+          {enabled && pinUpgradeRecommended && (
+            <div className="password-protection-upgrade" data-testid="pin-upgrade-notice">
+              <div>
+                <strong>{l("解锁密码长度不足 8 位", "Your unlock password is shorter than 8 digits")}</strong>
+                <p>{l("这台设备上较早设置的密码仍然有效，但更容易被离线穷举。建议改为 8 位以上的数字密码。", "A password set earlier on this device still works, but it is easier to guess offline. Setting one of at least 8 digits is recommended.")}</p>
+              </div>
+              <SecondaryButton disabled={isBusy} onClick={() => resetForm("change")}>{l("改为 8 位密码", "Set an 8-digit password")}</SecondaryButton>
+            </div>
+          )}
           <div className="password-protection-actions">
             {enabled ? (
               <>
@@ -1639,7 +1650,7 @@ function PasswordProtectionSection() {
         </div>
       ) : mode === "setup" ? (
         <form className={`password-protection-form${isBusy ? " is-submitting" : ""}`} onSubmit={(event) => void setupPassword(event)}>
-          <p>{l("请设置至少 6 位的数字密码。恢复码用于忘记密码时重设密码。", "Set a numeric password of at least six digits. The recovery code can reset it if you forget it.")}</p>
+          <p>{l("请设置至少 8 位的数字密码。恢复码用于忘记密码时重设密码。", "Set a numeric password of at least eight digits. The recovery code can reset it if you forget it.")}</p>
           {!isDesktopApp && <p className="password-protection-preview-hint">{l("当前是网页预览：填写与点击会展示提交反馈，但不会在浏览器里保存密码。", "This is a web preview: the form demonstrates submission feedback but does not save a password in your browser.")}</p>}
           <label className="system-field">
             <span>{l("数字密码", "Numeric password")}</span>
@@ -1660,16 +1671,17 @@ function PasswordProtectionSection() {
             </label>
           </div>
           <div className="system-form-actions">
-            <PrimaryButton disabled={isBusy || !password || !confirmPassword || !hasStoredPhrase} type="submit">{isBusy ? <><span aria-hidden="true" className="password-protection-spinner" />{l("正在设置……", "Setting up…")}</> : l("完成设置", "Finish setup")}</PrimaryButton>
+            <PrimaryButton disabled={isBusy || !/^\d{8,}$/u.test(password) || !confirmPassword || !hasStoredPhrase} type="submit">{isBusy ? <><span aria-hidden="true" className="password-protection-spinner" />{l("正在设置……", "Setting up…")}</> : l("完成设置", "Finish setup")}</PrimaryButton>
             <SecondaryButton disabled={isBusy} onClick={() => resetForm("summary")}>{l("取消", "Cancel")}</SecondaryButton>
           </div>
         </form>
       ) : mode === "change" ? (
         <form className="password-protection-form" onSubmit={(event) => void changePassword(event)}>
+          <p>{l("新密码需要 8 位以上数字。当前密码保持原样校验，较短的旧密码仍可继续使用。", "The new password needs at least 8 digits. Your current password is checked as-is, so a shorter older one still works.")}</p>
           <label className="system-field"><span>{l("当前密码", "Current password")}</span><input autoComplete="current-password" onChange={(event) => setCurrentPassword(event.target.value)} type="password" value={currentPassword} /></label>
-          <label className="system-field"><span>{l("新密码", "New password")}</span><input autoComplete="new-password" onChange={(event) => setPassword(event.target.value)} type="password" value={password} /></label>
-          <label className="system-field"><span>{l("再次输入新密码", "Enter new password again")}</span><input autoComplete="new-password" onChange={(event) => setConfirmPassword(event.target.value)} type="password" value={confirmPassword} /></label>
-          <div className="system-form-actions"><PrimaryButton disabled={isBusy || !currentPassword || !password || !confirmPassword} type="submit">{l("保存新密码", "Save new password")}</PrimaryButton><SecondaryButton disabled={isBusy} onClick={() => resetForm("summary")}>{l("取消", "Cancel")}</SecondaryButton></div>
+          <label className="system-field"><span>{l("新密码", "New password")}</span><input autoComplete="new-password" inputMode="numeric" onChange={(event) => setPassword(event.target.value.replace(/\D/gu, ""))} pattern="[0-9]*" type="password" value={password} /></label>
+          <label className="system-field"><span>{l("再次输入新密码", "Enter new password again")}</span><input autoComplete="new-password" inputMode="numeric" onChange={(event) => setConfirmPassword(event.target.value.replace(/\D/gu, ""))} pattern="[0-9]*" type="password" value={confirmPassword} /></label>
+          <div className="system-form-actions"><PrimaryButton disabled={isBusy || !currentPassword || !/^\d{8,}$/u.test(password) || password !== confirmPassword} type="submit">{l("保存新密码", "Save new password")}</PrimaryButton><SecondaryButton disabled={isBusy} onClick={() => resetForm("summary")}>{l("取消", "Cancel")}</SecondaryButton></div>
         </form>
       ) : (
         <form className="password-protection-form password-protection-disable-form" onSubmit={(event) => void disablePassword(event)}>

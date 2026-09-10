@@ -631,8 +631,8 @@ describe("SettingsSystemPage profile settings", () => {
     fireEvent.click(screen.getByRole("button", { name: /数据与隐私/ }));
     await waitFor(() => expect(screen.getByRole("button", { name: "开启密码保护" })).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "开启密码保护" }));
-    fireEvent.change(screen.getByLabelText("数字密码"), { target: { value: "123456" } });
-    fireEvent.change(screen.getByLabelText("再次输入数字密码"), { target: { value: "123456" } });
+    fireEvent.change(screen.getByLabelText("数字密码"), { target: { value: "12345678" } });
+    fireEvent.change(screen.getByLabelText("再次输入数字密码"), { target: { value: "12345678" } });
     fireEvent.click(screen.getByRole("checkbox", { name: /我已保存恢复码/ }));
     fireEvent.click(screen.getByRole("button", { name: "完成设置" }));
 
@@ -669,6 +669,45 @@ describe("SettingsSystemPage profile settings", () => {
     await waitFor(() => expect(disable).toHaveBeenCalledWith("123456"));
     expect(screen.getByRole("button", { name: "开启密码保护" })).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("本地资料仍由这台设备加密保护");
+  });
+
+  it("invites an upgrade when the unlock password predates the 8-digit floor", async () => {
+    vi.stubGlobal("lingDesktop", {
+      accessLock: {
+        status: vi.fn(async () => ({
+          ok: true as const,
+          data: { configured: true, enabled: true, unlocked: true, graceMinutes: 5, pinUpgradeRecommended: true }
+        })),
+        changePassword: vi.fn()
+      }
+    });
+
+    render(<SettingsSystemPage />);
+    fireEvent.click(screen.getByRole("button", { name: /数据与隐私/ }));
+
+    await waitFor(() => expect(screen.getByTestId("pin-upgrade-notice")).toBeInTheDocument());
+    expect(screen.getByTestId("pin-upgrade-notice")).toHaveTextContent("解锁密码长度不足 8 位");
+
+    fireEvent.click(screen.getByRole("button", { name: "改为 8 位密码" }));
+    expect(screen.getByLabelText("当前密码")).toBeInTheDocument();
+    expect(screen.getByLabelText("新密码")).toBeInTheDocument();
+  });
+
+  it("stays quiet about the password when it already meets the floor", async () => {
+    vi.stubGlobal("lingDesktop", {
+      accessLock: {
+        status: vi.fn(async () => ({
+          ok: true as const,
+          data: { configured: true, enabled: true, unlocked: true, graceMinutes: 5, pinUpgradeRecommended: false }
+        }))
+      }
+    });
+
+    render(<SettingsSystemPage />);
+    fireEvent.click(screen.getByRole("button", { name: /数据与隐私/ }));
+
+    await waitFor(() => expect(screen.getByRole("button", { name: "修改密码" })).toBeInTheDocument());
+    expect(screen.queryByTestId("pin-upgrade-notice")).not.toBeInTheDocument();
   });
 
   it("confirms before restoring recommended preferences and reports success", async () => {

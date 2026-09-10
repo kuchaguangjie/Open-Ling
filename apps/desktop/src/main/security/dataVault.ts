@@ -258,11 +258,29 @@ export async function openOrMigrateEncryptedDatabase(path: string, dataKey: Buff
   }
 }
 
+export const MIN_PIN_LENGTH = 8;
+export const MAX_PIN_LENGTH = 64;
+
+/**
+ * Applies only to a password being *set* (setup, recover, change). The unlock
+ * path deliberately never calls this: a vault created before the 8-digit floor
+ * still holds a shorter password, and rejecting it here would lock those users
+ * out of their own data. See `isLegacyPin` for how they are surfaced instead.
+ */
 export function validatePin(value: unknown) {
-  if (typeof value !== "string" || !/^\d+$/u.test(value)) return "请输入 6 位以上的数字密码。";
-  if (value.length < 6) return "密码至少需要 6 位数字。";
-  if (value.length > 64) return "密码不能超过 64 位。";
+  if (typeof value !== "string" || !/^\d+$/u.test(value)) return `请输入 ${MIN_PIN_LENGTH} 位以上的数字密码。`;
+  if (value.length < MIN_PIN_LENGTH) return `密码至少需要 ${MIN_PIN_LENGTH} 位数字。`;
+  if (value.length > MAX_PIN_LENGTH) return `密码不能超过 ${MAX_PIN_LENGTH} 位。`;
   return null;
+}
+
+/**
+ * A password that satisfied an older floor but predates the current one. The
+ * vault stores no length metadata, so this is inferred from a successful
+ * unlock — the only moment a known-correct password is in hand.
+ */
+export function isLegacyPin(value: string) {
+  return value.length < MIN_PIN_LENGTH;
 }
 
 export function normalizeRecoveryPhrase(value: string) {

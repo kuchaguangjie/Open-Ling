@@ -2303,6 +2303,32 @@
 
 .password-protection-actions { justify-content: flex-end; }
 
+.password-protection-upgrade {
+  align-items: center;
+  background: rgba(160, 139, 104, .1);
+  border: 1px solid rgba(151, 124, 83, .28);
+  border-radius: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  grid-column: 1 / -1;
+  justify-content: space-between;
+  padding: 13px 16px;
+}
+
+.password-protection-upgrade strong {
+  color: #78654b;
+  font: 650 13px var(--font-ui, sans-serif);
+}
+
+.password-protection-upgrade p {
+  color: #6b6152;
+  font-size: 13px;
+  line-height: 1.7;
+  margin: 4px 0 0;
+  max-width: 56ch;
+}
+
 .grace-period-select {
   background: rgba(255, 252, 244, .48);
   border: 1px solid rgba(184, 153, 107, .22);

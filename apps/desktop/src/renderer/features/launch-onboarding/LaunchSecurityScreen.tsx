@@ -51,7 +51,7 @@ export function LaunchSecurityScreen({ onBack, onComplete, onSkip, presentation 
     }
   }
 
-  const canSubmit = /^\d{6,}$/u.test(pin) && pin === confirmPin && hasStoredPhrase && !isBusy;
+  const canSubmit = /^\d{8,}$/u.test(pin) && pin === confirmPin && hasStoredPhrase && !isBusy;
 
   const content = (
     <div className={`launch-onboarding-page launch-security-page${presentation === "embedded" ? " is-embedded" : ""}`}>
@@ -65,7 +65,7 @@ export function LaunchSecurityScreen({ onBack, onComplete, onSkip, presentation 
           <div className="launch-security-fields">
             <label>
               <span>{l("数字密码", "PIN")}</span>
-              <input autoComplete="new-password" autoFocus inputMode="numeric" onChange={(event) => setPin(event.target.value.replace(/\D/gu, ""))} pattern="[0-9]*" placeholder={l("至少 6 位数字", "At least 6 digits")} type="password" value={pin} />
+              <input autoComplete="new-password" autoFocus inputMode="numeric" onChange={(event) => setPin(event.target.value.replace(/\D/gu, ""))} pattern="[0-9]*" placeholder={l("至少 8 位数字", "At least 8 digits")} type="password" value={pin} />
             </label>
             <label>
               <span>{l("再次输入", "Enter it again")}</span>
