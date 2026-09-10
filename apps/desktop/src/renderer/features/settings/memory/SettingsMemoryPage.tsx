@@ -80,6 +80,7 @@ export function SettingsMemoryPage() {
   };
   const fallbackSessions = useSessionStore((state) => state.sessions);
   const fallbackLettersBySessionId = useSessionStore((state) => state.sessionLettersBySessionId);
+  const markSessionLetterRead = useSessionStore((state) => state.markSessionLetterRead);
   const clientDisplayName = useSettingsStore((state) => state.profile.displayName);
   const [items, setItems] = useState<LetterArchiveItem[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
@@ -137,6 +138,19 @@ export function SettingsMemoryPage() {
     } finally {
       setIsRefreshing(false);
     }
+  }
+
+  // Opening the full letter is the moment it counts as read. Selecting a card
+  // does not — selection only drives the preview column.
+  function openLetter(item: LetterArchiveItem) {
+    if (item.letter.status !== "ready") return;
+    setOpenedLetter(item);
+    if (item.letter.readAt) return;
+    const readAt = new Date().toISOString();
+    setItems((current) => current.map((candidate) => candidate.letter.id === item.letter.id
+      ? { ...candidate, letter: { ...candidate.letter, readAt } }
+      : candidate));
+    void markSessionLetterRead(item.letter.sessionId);
   }
 
   async function regenerateLetter(item: LetterArchiveItem) {
@@ -296,7 +310,7 @@ export function SettingsMemoryPage() {
                     onClick={() => setActiveLetterId(item.letter.id)}
                     onDoubleClick={() => {
                       setActiveLetterId(item.letter.id);
-                      if (item.letter.status === "ready") setOpenedLetter(item);
+                      openLetter(item);
                     }}
                     type="button"
                   >
@@ -339,7 +353,7 @@ export function SettingsMemoryPage() {
                 )}
               </div>
               <div className="letter-preview-actions">
-                <button disabled={activeItem.letter.status !== "ready"} onClick={() => setOpenedLetter(activeItem)} type="button">
+                <button disabled={activeItem.letter.status !== "ready"} onClick={() => openLetter(activeItem)} type="button">
                   {l("打开完整信件", "Open full letter")}
                 </button>
                 {activeItem.letter.status === "failed" && (

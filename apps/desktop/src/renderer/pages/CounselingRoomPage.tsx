@@ -69,6 +69,7 @@ export function CounselingRoomPage() {
     loadConsultationPreparation,
     loadMessagesForSession,
     loadSessionLetter,
+    markSessionLetterRead,
     regenerateSessionLetter,
     retryConsultationPreparation,
     retryMessage,
@@ -114,6 +115,12 @@ export function CounselingRoomPage() {
   const [isComposerActive, setIsComposerActive] = useState(false);
   const [isEndConfirmationOpen, setIsEndConfirmationOpen] = useState(false);
   const [openedLetter, setOpenedLetter] = useState<SessionLetter | null>(null);
+  // Opening the full letter is the moment it counts as read. Selecting a letter
+  // in the archive does not — there, selection is just preview.
+  const openLetter = (letter: SessionLetter) => {
+    setOpenedLetter(letter);
+    void markSessionLetterRead(letter.sessionId);
+  };
   const [newConsultationConfirmation, setNewConsultationConfirmation] = useState<
     "sent" | "sent-with-unsent" | "unsent-only" | null
   >(null);
@@ -552,6 +559,8 @@ export function CounselingRoomPage() {
             onLeave={leaveForLobby}
             onOpenHistory={openClosingHistory}
             onReadLetter={() => void readFlowLetter()}
+            onResume={() => void resumeSessionFromHistory()}
+            resumeBlockedReason={archiveResumeBlockedReason}
           />
         )}
       </CounselorDialogueStage>
@@ -575,6 +584,8 @@ export function CounselingRoomPage() {
           onLeave={leaveForLobby}
           onOpenHistory={openClosingHistory}
           onReadLetter={() => void readFlowLetter()}
+          onResume={() => void resumeSessionFromHistory()}
+          resumeBlockedReason={archiveResumeBlockedReason}
         />
       </CounselorDialogueStage>
     );
@@ -609,6 +620,8 @@ export function CounselingRoomPage() {
           onLeave={leaveForLobby}
           onOpenHistory={openClosingHistory}
           onReadLetter={() => void readFlowLetter()}
+          onResume={() => void resumeSessionFromHistory()}
+          resumeBlockedReason={archiveResumeBlockedReason}
         />
       </CounselorDialogueStage>
     );
@@ -624,7 +637,7 @@ export function CounselingRoomPage() {
         counselorName={counselor.name}
         errorMessage={flowError}
         onBack={origin === "closing" ? returnToClosingMenu : leaveForLobby}
-        onOpenLetter={setOpenedLetter}
+        onOpenLetter={openLetter}
         onRegenerateLetter={() => activeSession && void regenerateSessionLetter(activeSession.id)}
         onRecheck={origin === "ending" ? () => void recheckEndStatus() : undefined}
         onResume={origin !== "ending" ? () => void resumeSessionFromHistory() : undefined}
@@ -782,7 +795,7 @@ export function CounselingRoomPage() {
             userDisplayName={userDisplayName}
             waitingActivityText={waitingActivityText}
             onCreateSession={() => void startNewConsultation()}
-            onOpenLetter={setOpenedLetter}
+            onOpenLetter={openLetter}
             onRegenerateLetter={() => activeSession && void regenerateSessionLetter(activeSession.id)}
             onRetryMessage={retryMessage}
             onRetryPreparation={() => activeSession && void retryConsultationPreparation(activeSession.id)}

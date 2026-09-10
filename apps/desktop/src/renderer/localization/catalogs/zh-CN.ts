@@ -289,6 +289,7 @@ export const zhCN = {
   "closing.options": "咨询结束后的选择",
   "closing.viewHistory": "查看历史记录",
   "closing.readLetter": "阅读咨询师的信",
+  "closing.resume": "继续咨询",
   "arrival.aria": "进入咨询室",
   "arrival.continue": "继续进入咨询室",
   "arrival.showFull": "立即显示完整场记",

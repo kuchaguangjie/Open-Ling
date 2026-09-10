@@ -267,6 +267,18 @@
 .sofa-letter-status.pending { background: rgba(244, 232, 203, 0.92); color: #8a6c3f; }
 .sofa-letter-status.failed { background: rgba(250, 224, 216, 0.92); color: #8a5143; }
 
+/* Unread is shown only once a letter is ready: a pending one is still being
+   written, and a failed one has nothing to read. */
+.sofa-letter-unread {
+  background: rgba(98, 120, 88, 0.95);
+  border-radius: 50%;
+  display: inline-block;
+  height: 7px;
+  margin-right: 6px;
+  vertical-align: middle;
+  width: 7px;
+}
+
 .sofa-letter-preview-panel {
   min-height: 0;
   position: relative;

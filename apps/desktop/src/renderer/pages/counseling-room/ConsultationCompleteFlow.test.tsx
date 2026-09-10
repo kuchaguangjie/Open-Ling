@@ -251,7 +251,7 @@ describe("咨询完整流程页面", () => {
     expect(await screen.findByRole("dialog", { name: "林乐水写给你的信" })).toBeInTheDocument();
   });
 
-  it("来信仍在生成时保留收尾页和三个出口，不显示空白页面", () => {
+  it("来信仍在生成时保留收尾页和四个出口，不显示空白页面", () => {
     const endedSession = session({ id: "ended-pending", counselorId: "chengling", status: "ended" });
     useSessionStore.setState({
       activeSessionId: endedSession.id,
@@ -271,7 +271,84 @@ describe("咨询完整流程页面", () => {
     expect(screen.getByRole("status")).toHaveTextContent("正在写");
     expect(screen.getByRole("button", { name: "查看历史记录" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "阅读咨询师的信" })).toBeInTheDocument();
+    // The plain case — one ended session, nothing else unfinished — must be
+    // clickable, not merely present.
+    expect(screen.getByRole("button", { name: "继续咨询" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "返回等待室" })).toBeInTheDocument();
+  });
+
+  it("这位咨询师还有未完成会谈时，收尾页的「继续咨询」被拦下并说明原因", () => {
+    const endedSession = session({ id: "ended-blocked", counselorId: "chengling", status: "ended" });
+    const unfinished = session({ id: "still-open", counselorId: "chengling", status: "active" });
+    useSessionStore.setState({
+      activeSessionId: endedSession.id,
+      currentCounselorId: "chengling",
+      sessions: [endedSession, unfinished]
+    });
+    useConsultationFlowStore.getState().setFlow({
+      counselorId: "chengling",
+      sessionId: endedSession.id,
+      script: "returning",
+      surface: { kind: "closing-menu" }
+    });
+
+    render(<CounselingRoomPage />);
+
+    // Same condition the database transaction refuses on, so the button says so
+    // up front instead of failing on click.
+    const resume = screen.getByRole("button", { name: "继续咨询" });
+    expect(resume).toBeDisabled();
+    expect(resume).toHaveAttribute("title", "这位咨询师还有一次尚未完成的咨询，请先继续或结束它。");
+    expect(screen.getByRole("status")).toHaveTextContent("这位咨询师还有一次尚未完成的咨询");
+  });
+
+  it("不是最近结束的那一场时，收尾页的「继续咨询」被拦下并说明原因", () => {
+    const endedSession = session({ id: "ended-older", counselorId: "chengling", status: "ended" });
+    const newer = session({
+      id: "ended-newer",
+      counselorId: "chengling",
+      status: "ended",
+      endedAt: "2099-01-01T00:00:00.000Z"
+    });
+    useSessionStore.setState({
+      activeSessionId: endedSession.id,
+      currentCounselorId: "chengling",
+      sessions: [endedSession, newer]
+    });
+    useConsultationFlowStore.getState().setFlow({
+      counselorId: "chengling",
+      sessionId: endedSession.id,
+      script: "returning",
+      surface: { kind: "closing-menu" }
+    });
+
+    render(<CounselingRoomPage />);
+
+    expect(screen.getByRole("button", { name: "继续咨询" })).toBeDisabled();
+    expect(screen.getByRole("status")).toHaveTextContent("只能继续与这位咨询师最近结束的会谈");
+  });
+
+  it("从收尾页直接继续咨询，回到可继续说话的会谈页", async () => {
+    const endedSession = session({ id: "ended-notice-resume", counselorId: "chengling", status: "ended" });
+    const resumeSession = vi.fn(async () => ({ ok: true as const }));
+    useSessionStore.setState({
+      activeSessionId: endedSession.id,
+      currentCounselorId: "chengling",
+      sessions: [endedSession],
+      resumeSession
+    });
+    useConsultationFlowStore.getState().setFlow({
+      counselorId: "chengling",
+      sessionId: endedSession.id,
+      script: "returning",
+      surface: { kind: "closing-notice", reason: "letter-pending" }
+    });
+
+    render(<CounselingRoomPage />);
+    fireEvent.click(screen.getByRole("button", { name: "继续咨询" }));
+
+    await waitFor(() => expect(resumeSession).toHaveBeenCalledWith(endedSession.id));
+    expect(useConsultationFlowStore.getState().flow?.surface).toEqual({ kind: "session" });
   });
 
   it("恢复时落在普通会谈页的已结束会谈，侧栏仍能继续咨询", async () => {
@@ -438,12 +515,11 @@ describe("咨询完整流程页面", () => {
   });
 });
 
-function session(overrides: Pick<PrototypeSession, "id" | "counselorId" | "status">): PrototypeSession {
+function session(
+  overrides: Partial<PrototypeSession> & Pick<PrototypeSession, "id" | "counselorId" | "status">
+): PrototypeSession {
   const now = "2026-07-12T12:00:00.000Z";
   return {
-    id: overrides.id,
-    counselorId: overrides.counselorId,
-    status: overrides.status,
     title: "测试会谈",
     time: "刚刚",
     preview: "",
@@ -454,6 +530,7 @@ function session(overrides: Pick<PrototypeSession, "id" | "counselorId" | "statu
     startedAt: now,
     updatedAt: now,
     endedAt: overrides.status === "ended" ? now : undefined,
-    messages: []
+    messages: [],
+    ...overrides
   };
 }

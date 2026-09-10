@@ -252,6 +252,15 @@ export const migrations: Migration[] = [
         created_at TEXT NOT NULL
       )`
     ]
+  },
+  {
+    // NULL means the client has not opened the letter yet. Every writer goes
+    // through ON CONFLICT(session_id) DO UPDATE SET read_at = excluded.read_at,
+    // so a regenerated letter lands back at NULL and surfaces as unread again.
+    name: "015_session_letter_read_state",
+    statements: [
+      "ALTER TABLE session_letters ADD COLUMN read_at TEXT"
+    ]
   }
 ];
 

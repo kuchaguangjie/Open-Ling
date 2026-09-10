@@ -291,6 +291,7 @@ export const enUS: Record<TranslationKey, string> = {
   "closing.options": "Options after the session ends",
   "closing.viewHistory": "View session record",
   "closing.readLetter": "Read counselor letter",
+  "closing.resume": "Continue this session",
   "arrival.aria": "Entering the counseling room",
   "arrival.continue": "Continue into the counseling room",
   "arrival.showFull": "Show the complete arrival card",

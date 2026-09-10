@@ -28,6 +28,7 @@ export function useCounselingRoomController() {
     loadConsultationPreparation: session.loadConsultationPreparation,
     loadMessagesForSession: session.loadMessagesForSession,
     loadSessionLetter: session.loadSessionLetter,
+    markSessionLetterRead: session.markSessionLetterRead,
     regenerateSessionLetter: session.regenerateSessionLetter,
     retryConsultationPreparation: session.retryConsultationPreparation,
     retryMessage: session.retryMessage,

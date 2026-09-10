@@ -90,7 +90,14 @@ export function createConsultationPreparationRepository(db: LingDatabase): Consu
     db.prepare("DELETE FROM consultation_memos WHERE source_session_id = ?").run(sessionId);
     db.prepare("DELETE FROM session_supervisions WHERE session_id = ?").run(sessionId);
     db.prepare("DELETE FROM session_conceptualizations WHERE session_id = ?").run(sessionId);
-    db.prepare("DELETE FROM session_letters WHERE session_id = ?").run(sessionId);
+
+    // The letter is deliberately kept. Unlike the working artifacts above it is
+    // a user-facing document the client may already have read, and resuming a
+    // session must not silently destroy it. `session_letters.session_id` is
+    // UNIQUE and written with ON CONFLICT(session_id) DO UPDATE, so the next
+    // ending cycle simply overwrites it — and because regenerated letters carry
+    // no read_at, the replacement comes back unread. Deleting here would lose
+    // the letter for a client who only wanted to keep talking.
 
     const rows = db.prepare<[], { counselor_id: string; covered_session_ids: string }>(
       "SELECT counselor_id, covered_session_ids FROM long_term_conceptualizations"

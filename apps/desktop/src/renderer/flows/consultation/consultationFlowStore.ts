@@ -5,6 +5,7 @@ import { useSessionStore } from "../../stores/sessionStore";
 import { useSettingsStore } from "../../stores/settingsStore";
 import {
   createOpeningFlow,
+  isResumableSurface,
   reconcileConsultationFlow,
   transitionConsultationFlow,
   type ConsultationOpeningScript,
@@ -416,7 +417,10 @@ export const useConsultationFlowStore = create<ConsultationFlowStoreState>((set,
   },
   resumeSessionFromHistory: async () => {
     const flow = get().flow;
-    if (!flow || flow.surface.kind !== "history" || get().isBusy) return;
+    // Offered from the read-only history and from every screen in the closing
+    // family — which is where the client actually sits after ending a session
+    // and where they used to have no way back in.
+    if (!flow || !isResumableSurface(flow.surface) || get().isBusy) return;
     set({ isBusy: true, error: undefined });
     let result;
     try {

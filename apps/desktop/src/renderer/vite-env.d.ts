@@ -119,6 +119,7 @@ interface LingDesktopApi {
     list: () => Promise<IpcSuccess<SessionLetter[]> | IpcFailure>;
     getBySessionId: (sessionId: string) => Promise<IpcSuccess<SessionLetter | null> | IpcFailure>;
     regenerate: (sessionId: string) => Promise<IpcSuccess<SessionLetter | null> | IpcFailure>;
+    markRead?: (sessionId: string) => Promise<IpcSuccess<SessionLetter | null> | IpcFailure>;
   };
   messages: {
     listBySessionId: (sessionId: string) => Promise<IpcSuccess<SessionMessage[]> | IpcFailure>;

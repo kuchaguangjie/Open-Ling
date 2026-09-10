@@ -82,6 +82,7 @@ interface SessionState {
   retryConsultationPreparation: (id: string) => Promise<void>;
   loadSessionLetter: (id: string) => Promise<SessionLetterReadResult>;
   regenerateSessionLetter: (id: string) => Promise<void>;
+  markSessionLetterRead: (id: string) => Promise<void>;
   refreshSessionFromDesktop: (id: string) => Promise<void>;
   readSessionStatus: (id: string) => Promise<SessionStatusReadResult>;
   loadPersistedSessions: (preferredSessionId?: string) => Promise<SessionCommandResult>;
@@ -746,6 +747,33 @@ export const useSessionStore = create<SessionState>((set, get) => ({
           ...state.sessionLettersBySessionId,
           [id]: result.data ?? undefined
         }
+      }));
+    }
+  },
+  markSessionLetterRead: async (id) => {
+    const current = get().sessionLettersBySessionId[id];
+    // Nothing readable to stamp — a pending or failed letter is still being
+    // (re)written, and a stamp on it would outlive the text it referred to. The
+    // main process applies the same rule, so this is only short-circuiting.
+    if (current && (current.status !== "ready" || current.readAt)) return;
+    if (current) {
+      set((state) => ({
+        sessionLettersBySessionId: {
+          ...state.sessionLettersBySessionId,
+          [id]: { ...current, readAt: new Date().toISOString() }
+        }
+      }));
+    }
+    if (typeof window.lingDesktop?.sessionLetters?.markRead !== "function") return;
+    let result;
+    try {
+      result = await window.lingDesktop.sessionLetters.markRead(id);
+    } catch {
+      return;
+    }
+    if (result.ok && result.data) {
+      set((state) => ({
+        sessionLettersBySessionId: { ...state.sessionLettersBySessionId, [id]: result.data ?? undefined }
       }));
     }
   },

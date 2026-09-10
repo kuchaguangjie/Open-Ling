@@ -637,6 +637,58 @@ describe("sessionStore persistence", () => {
     }
   });
 
+  it("stamps a ready letter as read and leaves writing or failed ones alone", async () => {
+    const readySessionId = "session-letter-ready";
+    const pendingSessionId = "session-letter-pending";
+    const markRead = vi.fn(async (sessionId: string) => ({
+      ok: true as const,
+      data: {
+        id: `session-letter-${sessionId}`,
+        sessionId,
+        counselorId: "chengling",
+        modelName: "test",
+        letterMd: "信",
+        status: "ready" as const,
+        createdAt: "2026-07-12T12:00:00.000Z",
+        updatedAt: "2026-07-12T12:00:00.000Z",
+        readAt: "2026-07-12T12:05:00.000Z"
+      }
+    }));
+    vi.stubGlobal("lingDesktop", { sessionLetters: { markRead } });
+    useSessionStore.setState({
+      sessionLettersBySessionId: {
+        [readySessionId]: {
+          id: `session-letter-${readySessionId}`,
+          sessionId: readySessionId,
+          counselorId: "chengling",
+          modelName: "test",
+          letterMd: "信",
+          status: "ready",
+          createdAt: "2026-07-12T12:00:00.000Z",
+          updatedAt: "2026-07-12T12:00:00.000Z"
+        },
+        [pendingSessionId]: {
+          id: `session-letter-${pendingSessionId}`,
+          sessionId: pendingSessionId,
+          counselorId: "chengling",
+          modelName: "test",
+          letterMd: "",
+          status: "pending",
+          createdAt: "2026-07-12T12:00:00.000Z",
+          updatedAt: "2026-07-12T12:00:00.000Z"
+        }
+      }
+    });
+
+    await useSessionStore.getState().markSessionLetterRead(pendingSessionId);
+    expect(markRead).not.toHaveBeenCalled();
+    expect(useSessionStore.getState().sessionLettersBySessionId[pendingSessionId]?.readAt).toBeUndefined();
+
+    await useSessionStore.getState().markSessionLetterRead(readySessionId);
+    expect(markRead).toHaveBeenCalledWith(readySessionId);
+    expect(useSessionStore.getState().sessionLettersBySessionId[readySessionId]?.readAt).toBe("2026-07-12T12:05:00.000Z");
+  });
+
   it("does not let delayed user defaults override restored persisted session metadata", async () => {
     vi.stubGlobal("lingDesktop", {
       sessions: {

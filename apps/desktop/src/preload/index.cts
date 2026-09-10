@@ -92,6 +92,7 @@ const IPC_CHANNELS = {
   SESSION_LETTERS_LIST: "ling:session-letters:list",
   SESSION_LETTERS_GET_BY_SESSION: "ling:session-letters:get-by-session",
   SESSION_LETTERS_REGENERATE: "ling:session-letters:regenerate",
+  SESSION_LETTERS_MARK_READ: "ling:session-letters:mark-read",
   MESSAGES_LIST: "ling:messages:list",
   MESSAGES_APPEND: "ling:messages:append",
   MESSAGES_APPEND_MANY: "ling:messages:append-many",
@@ -251,7 +252,9 @@ contextBridge.exposeInMainWorld("lingDesktop", {
     getBySessionId: (sessionId: string) =>
       ipcRenderer.invoke(IPC_CHANNELS.SESSION_LETTERS_GET_BY_SESSION, sessionId) as Promise<IpcSuccess<SessionLetter | null> | IpcFailure>,
     regenerate: (sessionId: string) =>
-      ipcRenderer.invoke(IPC_CHANNELS.SESSION_LETTERS_REGENERATE, sessionId) as Promise<IpcSuccess<SessionLetter | null> | IpcFailure>
+      ipcRenderer.invoke(IPC_CHANNELS.SESSION_LETTERS_REGENERATE, sessionId) as Promise<IpcSuccess<SessionLetter | null> | IpcFailure>,
+    markRead: (sessionId: string) =>
+      ipcRenderer.invoke(IPC_CHANNELS.SESSION_LETTERS_MARK_READ, sessionId) as Promise<IpcSuccess<SessionLetter | null> | IpcFailure>
   },
   messages: {
     listBySessionId: (sessionId: string) =>

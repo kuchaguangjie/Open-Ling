@@ -1000,6 +1000,20 @@ export function registerIpcHandlers(repositories?: IpcRepositories, localBackupA
     return repositories.sessionLetters.getBySessionId(session.id);
   }));
 
+  ipcMain.handle(IPC_CHANNELS.SESSION_LETTERS_MARK_READ, wrapIpcHandler(async (_event, sessionId: unknown) => {
+    const err = validateId(sessionId);
+    if (err) return failure(ERROR_CODES.VALIDATION_ERROR, err);
+    const letter = await repositories.sessionLetters.getBySessionId(sessionId as string);
+    // Only a letter the client can actually read gets a stamp. A pending or
+    // failed one is still being (re)written, and marking it here would let the
+    // read state outlive the text it referred to.
+    if (letter?.status === "ready" && !letter.readAt) {
+      await repositories.sessionLetters.markRead(letter.sessionId, new Date().toISOString());
+      return repositories.sessionLetters.getBySessionId(letter.sessionId);
+    }
+    return letter;
+  }));
+
   // ---- Messages ----
   ipcMain.handle(IPC_CHANNELS.MESSAGES_LIST, wrapIpcHandler(async (_event, sessionId: unknown) => {
     const err = validateId(sessionId);

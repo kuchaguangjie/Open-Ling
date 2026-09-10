@@ -97,7 +97,8 @@ export const schemaStatements = [
     status TEXT NOT NULL DEFAULT 'pending',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
-    error_message TEXT
+    error_message TEXT,
+    read_at TEXT
   )`,
   `CREATE TABLE IF NOT EXISTS consultation_preparations (
     id TEXT PRIMARY KEY,

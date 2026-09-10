@@ -134,6 +134,26 @@ describe("consultationFlowStore", () => {
     expect(useConsultationFlowStore.getState().flow?.surface).toEqual({ kind: "session" });
   });
 
+  it("也可以在收尾页直接继续同一次咨询", async () => {
+    const resumeSession = vi.fn(async () => ({ ok: true as const }));
+    useSessionStore.setState({ resumeSession });
+    useConsultationFlowStore.setState({
+      flow: {
+        counselorId: "chengling",
+        sessionId: "session-ended",
+        script: "returning",
+        surface: { kind: "closing-notice", reason: "letter-pending" }
+      }
+    });
+
+    await useConsultationFlowStore.getState().resumeSessionFromHistory();
+
+    expect(resumeSession).toHaveBeenCalledWith("session-ended");
+    expect(useConsultationFlowStore.getState().flow?.surface).toEqual({ kind: "session" });
+    // The closing cycle belongs to the ending that just got undone.
+    expect(useConsultationFlowStore.getState().flow?.closingCycle).toBeUndefined();
+  });
+
   it("keeps the three choices available after a pending-letter notice", async () => {
     const loadSessionLetter = vi.fn<(id: string) => Promise<SessionLetterReadResult>>(async () => ({ ok: true, availability: "pending", letter: null }));
     useSessionStore.setState({

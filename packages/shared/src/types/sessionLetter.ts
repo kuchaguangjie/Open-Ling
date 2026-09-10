@@ -10,4 +10,10 @@ export interface SessionLetter {
   createdAt: string;
   updatedAt: string;
   errorMessage?: string;
+  /**
+   * When the client last opened the full letter. Absent means unread, which is
+   * also the state a regenerated letter returns to — the previous read stamp is
+   * replaced along with the text it referred to.
+   */
+  readAt?: string;
 }

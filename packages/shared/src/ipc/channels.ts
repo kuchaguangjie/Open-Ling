@@ -66,6 +66,7 @@ export const IPC_CHANNELS = {
   SESSION_LETTERS_LIST: "ling:session-letters:list",
   SESSION_LETTERS_GET_BY_SESSION: "ling:session-letters:get-by-session",
   SESSION_LETTERS_REGENERATE: "ling:session-letters:regenerate",
+  SESSION_LETTERS_MARK_READ: "ling:session-letters:mark-read",
 
   MESSAGES_LIST: "ling:messages:list",
   MESSAGES_APPEND: "ling:messages:append",

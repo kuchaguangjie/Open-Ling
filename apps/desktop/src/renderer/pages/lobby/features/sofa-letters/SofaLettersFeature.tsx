@@ -27,6 +27,7 @@ export function SofaLettersFeature() {
   };
   const fallbackSessions = useSessionStore((state) => state.sessions);
   const fallbackLettersBySessionId = useSessionStore((state) => state.sessionLettersBySessionId);
+  const markSessionLetterRead = useSessionStore((state) => state.markSessionLetterRead);
   const clientDisplayName = useSettingsStore((state) => state.profile.displayName);
   const [items, setItems] = useState<LetterArchiveItem[]>([]);
   const [status, setStatus] = useState<ArchiveStatus>("loading");
@@ -132,6 +133,24 @@ export function SofaLettersFeature() {
     }
   }
 
+  function isUnread(letter: SessionLetter) {
+    return letter.status === "ready" && !letter.readAt;
+  }
+
+  // Opening the full letter is the moment it counts as read. Selecting a row
+  // does not: this archive is two-column, so selection is only a preview — and
+  // the page auto-selects the first letter on entry.
+  function openLetter(item: LetterArchiveItem) {
+    if (item.letter.status !== "ready") return;
+    setOpenedLetter(item);
+    if (item.letter.readAt) return;
+    const readAt = new Date().toISOString();
+    setItems((current) => current.map((candidate) => candidate.letter.id === item.letter.id
+      ? { ...candidate, letter: { ...candidate.letter, readAt } }
+      : candidate));
+    void markSessionLetterRead(item.letter.sessionId);
+  }
+
   async function regenerateLetter(item: LetterArchiveItem) {
     if (!window.lingDesktop?.sessionLetters?.regenerate) return;
     const requestSequence = loadRequestSequenceRef.current + 1;
@@ -210,14 +229,19 @@ export function SofaLettersFeature() {
                 setActiveLetterId(item.letter.id);
                 setMobilePreviewOpen(true);
               }}
-              onDoubleClick={() => {
-                if (item.letter.status === "ready") setOpenedLetter(item);
-              }}
+              onDoubleClick={() => openLetter(item)}
               type="button"
             >
               <img alt="" src={item.letter.status === "ready" && activeItem?.letter.id === item.letter.id ? openedEnvelopeArt : closedEnvelopeArt} />
               <span className="sofa-letter-row-copy">
-                <strong>{item.session?.title ?? l(`${getCounselorName(item.letter.counselorId, locale)}的来信`, `Letter from ${getCounselorName(item.letter.counselorId, locale)}`)}</strong>
+                <strong>
+                  {isUnread(item.letter) && (
+                    <span className="sofa-letter-unread" title={l("还没读过", "Not read yet")}>
+                      <span className="sr-only">{l("未读", "Unread")}</span>
+                    </span>
+                  )}
+                  {item.session?.title ?? l(`${getCounselorName(item.letter.counselorId, locale)}的来信`, `Letter from ${getCounselorName(item.letter.counselorId, locale)}`)}
+                </strong>
                 <span>{getCounselorName(item.letter.counselorId, locale)}</span>
                 <time dateTime={item.session?.endedAt ?? item.letter.updatedAt}>{formatDate(item.session?.endedAt ?? item.letter.updatedAt, locale)}</time>
               </span>
@@ -254,7 +278,7 @@ export function SofaLettersFeature() {
               )}
               <footer>
                 {activeItem.letter.status === "ready" && (
-                  <button onClick={() => setOpenedLetter(activeItem)} type="button">{l("打开完整信件", "Open full letter")}</button>
+                  <button onClick={() => openLetter(activeItem)} type="button">{l("打开完整信件", "Open full letter")}</button>
                 )}
                 {activeItem.letter.status === "failed" && (
                   <button onClick={() => void regenerateLetter(activeItem)} type="button">{l("重新生成", "Generate again")}</button>

@@ -322,7 +322,8 @@ describe("Ling local data foundation", () => {
       letterMd: "旧结束周期的来信",
       status: "ready",
       createdAt: endedAt,
-      updatedAt: endedAt
+      updatedAt: endedAt,
+      readAt: "2026-07-11T10:00:30.000Z"
     });
 
     await expect(
@@ -335,7 +336,32 @@ describe("Ling local data foundation", () => {
     await expect(longTerm.getByCounselorId("chengling")).resolves.toBeNull();
     await expect(supervisions.getBySessionId(preparation.sessionId)).resolves.toBeNull();
     await expect(memos.getBySourceSessionId(preparation.sessionId)).resolves.toBeNull();
-    await expect(letters.getBySessionId(preparation.sessionId)).resolves.toBeNull();
+
+    // The letter is deliberately the one artifact that survives: the client may
+    // already have read it, and resuming must not destroy it.
+    await expect(letters.getBySessionId(preparation.sessionId)).resolves.toMatchObject({
+      letterMd: "旧结束周期的来信",
+      status: "ready",
+      readAt: "2026-07-11T10:00:30.000Z"
+    });
+
+    // Ending again regenerates the letter over the same row, and the read stamp
+    // goes with the text it described — the client has not seen this one.
+    const reEndedAt = "2026-07-11T11:00:00.000Z";
+    db.prepare("UPDATE sessions SET status = 'ended', ended_at = ? WHERE id = ?").run(reEndedAt, preparation.sessionId);
+    await expect(letters.upsertForEndedCycle({
+      id: "letter-published-then-resumed",
+      sessionId: preparation.sessionId,
+      counselorId: "chengling",
+      modelName: "deepseek-v4-pro",
+      letterMd: "继续之后的第二封来信",
+      status: "ready",
+      createdAt: reEndedAt,
+      updatedAt: reEndedAt
+    }, reEndedAt)).resolves.toBe(true);
+    const regenerated = await letters.getBySessionId(preparation.sessionId);
+    expect(regenerated).toMatchObject({ letterMd: "继续之后的第二封来信", status: "ready" });
+    expect(regenerated?.readAt).toBeUndefined();
   });
 
   it("does not publish a stale consultation preparation after the session resumes", async () => {
@@ -1253,6 +1279,69 @@ describe("Ling local data foundation", () => {
     });
   });
 
+  it("tracks whether a letter has been read and clears the stamp when it is rewritten", async () => {
+    const repository = createSessionLetterRepository(db);
+    const letter: SessionLetter = {
+      id: "session-letter-read-state",
+      sessionId: "session-letter-read-state-session",
+      counselorId: "chengling",
+      modelName: "deepseek-v4-pro",
+      letterMd: "亲爱的你：\n\n这是第一封信。",
+      status: "ready",
+      createdAt: "2026-07-06T10:00:00.000Z",
+      updatedAt: "2026-07-06T10:00:00.000Z"
+    };
+
+    await repository.upsert(letter);
+    expect((await repository.getBySessionId(letter.sessionId))?.readAt).toBeUndefined();
+
+    await repository.markRead(letter.sessionId, "2026-07-06T10:02:00.000Z");
+    expect(await repository.getBySessionId(letter.sessionId)).toMatchObject({
+      readAt: "2026-07-06T10:02:00.000Z",
+      // Reading must not reorder the archive, which sorts on updatedAt.
+      updatedAt: "2026-07-06T10:00:00.000Z"
+    });
+
+    // A failure leaves the text untouched, so the letter stays read.
+    await repository.markFailed({
+      id: letter.id,
+      sessionId: letter.sessionId,
+      counselorId: letter.counselorId,
+      modelName: letter.modelName,
+      failedAt: "2026-07-06T10:04:00.000Z",
+      errorMessage: "重新生成失败"
+    });
+    expect(await repository.getBySessionId(letter.sessionId)).toMatchObject({
+      status: "failed",
+      readAt: "2026-07-06T10:02:00.000Z"
+    });
+
+    // Regeneration shows the old text while the new one is written, so the old
+    // stamp holds until the replacement actually lands.
+    await repository.markPending({
+      id: letter.id,
+      sessionId: letter.sessionId,
+      counselorId: letter.counselorId,
+      modelName: letter.modelName,
+      now: "2026-07-06T10:05:00.000Z"
+    });
+    expect(await repository.getBySessionId(letter.sessionId)).toMatchObject({
+      status: "pending",
+      letterMd: letter.letterMd,
+      readAt: "2026-07-06T10:02:00.000Z"
+    });
+
+    // Writing the new text clears it: the client has not seen this letter.
+    await repository.upsert({
+      ...letter,
+      letterMd: "第二封信，换了一个说法。",
+      updatedAt: "2026-07-06T10:06:00.000Z"
+    });
+    const rewritten = await repository.getBySessionId(letter.sessionId);
+    expect(rewritten).toMatchObject({ status: "ready", letterMd: "第二封信，换了一个说法。" });
+    expect(rewritten?.readAt).toBeUndefined();
+  });
+
   it("does not let an old ending cycle overwrite the current pending letter or preparation", async () => {
     const sessions = createSessionRepository(db);
     const letters = createSessionLetterRepository(db);
@@ -1475,11 +1564,11 @@ describe("Ling versioned migrations", () => {
   });
 
   it("records applied migrations in schema_migrations table", () => {
-    const migrations = getAppliedMigrations(db);
-    expect(migrations.length).toBeGreaterThan(0);
-    expect(migrations[0]).toHaveProperty("name");
-    expect(migrations[0]).toHaveProperty("applied_at");
-    expect(migrations.at(-1)?.name).toBe("014_model_usage");
+    const applied = getAppliedMigrations(db);
+    expect(applied.length).toBeGreaterThan(0);
+    expect(applied[0]).toHaveProperty("name");
+    expect(applied[0]).toHaveProperty("applied_at");
+    expect(applied.map((migration) => migration.name)).toEqual(migrations.map((migration) => migration.name));
   });
 
   it("does not insert duplicate migration records on repeated run", () => {
@@ -1487,6 +1576,35 @@ describe("Ling versioned migrations", () => {
     migrateLingDatabase(db);
     const secondRun = getAppliedMigrations(db);
     expect(secondRun).toEqual(firstRun);
+  });
+
+  it("adds the letter read stamp to a database written before it existed", async () => {
+    const letters = createSessionLetterRepository(db);
+    await letters.upsert({
+      id: "session-letter-predates-read-state",
+      sessionId: "session-predates-read-state",
+      counselorId: "chengling",
+      modelName: "deepseek-v4-pro",
+      letterMd: "旧版本写下的来信",
+      status: "ready",
+      createdAt: "2026-07-06T10:00:00.000Z",
+      updatedAt: "2026-07-06T10:00:00.000Z"
+    });
+
+    // Roll the database back to its pre-015 shape: no column, no record that the
+    // migration ran.
+    db.exec("ALTER TABLE session_letters DROP COLUMN read_at");
+    db.prepare("DELETE FROM schema_migrations WHERE name = ?").run("015_session_letter_read_state");
+
+    migrateLingDatabase(db);
+
+    // The column is back and the letter that was already there now reads as
+    // unread — the client never saw it through a reader that tracks reading.
+    const restored = await letters.getBySessionId("session-predates-read-state");
+    expect(restored).toMatchObject({ letterMd: "旧版本写下的来信", status: "ready" });
+    expect(restored?.readAt).toBeUndefined();
+    await letters.markRead("session-predates-read-state", "2026-07-06T10:05:00.000Z");
+    expect((await letters.getBySessionId("session-predates-read-state"))?.readAt).toBe("2026-07-06T10:05:00.000Z");
   });
 
   it("preserves existing settings/session/message/memory data after repeated migration", async () => {

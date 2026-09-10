@@ -13,6 +13,17 @@ export type ConsultationFlowSurface =
   | { kind: "history"; origin: "closing" | "archive" }
   | { kind: "letter"; origin: "closing" | "archive" };
 
+/**
+ * Screens a client can be on, with a session already ended, where "continue
+ * this session" is a legitimate move. Kept next to the surface union so adding
+ * a closing-family screen forces a look at this list.
+ */
+export const RESUMABLE_SURFACE_KINDS = ["closing", "closing-menu", "closing-notice", "history"] as const satisfies readonly ConsultationFlowSurface["kind"][];
+
+export function isResumableSurface(surface: ConsultationFlowSurface) {
+  return (RESUMABLE_SURFACE_KINDS as readonly string[]).includes(surface.kind);
+}
+
 export type ConsultationOpeningScript = "first" | "second" | "returning";
 
 export interface ConsultationFlowState {
