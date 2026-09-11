@@ -3,6 +3,7 @@
 ## plan - human
 - 可能的 开发计划
     * 用 Capacitor , 生成 mobile client                      sub ..
+    * resource 太大, 几百Mb, 能否减小?
     * 多 agent:	1个主的, 多个子的; 偶尔让子的聚合下;
     * 语音输入
     * 投射卡牌启动: 用图让用户描述;
