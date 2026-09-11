@@ -17,3 +17,5 @@ coverage/
 tmp/
 .playwright-cli/
 output/
+
+# PLAN.md
