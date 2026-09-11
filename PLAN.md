@@ -1,11 +1,8 @@
 # PLAN
 
 ## plan - human
-- 分析逻辑                      sub ..
-  - 这里的聊天, 跟 与 ds 直接聊天, 有何区别?
-      - 为什么有这些区别
-  - 分析其 prompt 工程
 - 可能的 开发计划
+    * 用 Capacitor , 生成 mobile client                      sub ..
     * 多 agent:	1个主的, 多个子的; 偶尔让子的聚合下;
     * 语音输入
     * 投射卡牌启动: 用图让用户描述;
