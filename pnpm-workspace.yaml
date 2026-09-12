@@ -4,3 +4,7 @@ allowBuilds:
   electron: true
   electron-winstaller: true
   esbuild: true
+minimumReleaseAgeExclude:
+  - '@capacitor/android@8.5.2'
+  - '@capacitor/core@8.5.2'
+  - '@capacitor/cli@8.5.2'

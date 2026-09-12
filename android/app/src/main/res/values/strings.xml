@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Ling</string>
+    <string name="title_activity_main">Ling</string>
+    <string name="package_name">cn.xiaoqunpsy.ling</string>
+    <string name="custom_url_scheme">cn.xiaoqunpsy.ling</string>
+</resources>

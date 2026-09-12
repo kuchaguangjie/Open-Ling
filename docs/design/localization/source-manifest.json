@@ -47,7 +47,7 @@
       "id": "prompt.task.dialogue.chengling",
       "source": "packages/core/src/prompts/tasks/counseling-dialogue-chengling.md",
       "translation": "packages/core/src/prompts/en-US/tasks/counseling-dialogue-chengling.md",
-      "sourceHash": "529f9b993ef028c07e2ec05db5e86e9a78192d3172c7f7a6a3cf22164601d84d"
+      "sourceHash": "061165c42dccb3a1f6f2047397036c233bc1a2d543b54d0ac0c528c15901d277"
     },
     {
       "id": "prompt.task.dialogue.linleshui",

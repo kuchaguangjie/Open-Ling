@@ -40,16 +40,23 @@
     "setup:ling-dev-auto-refresh": "node scripts/setup-ling-dev-auto-refresh.mjs",
     "dist:mac": "pnpm build && pnpm rebuild:sqlite:electron && electron-builder --mac dmg --config.npmRebuild=false",
     "dist:win": "pnpm build && electron-builder --win nsis",
+    "mobile:build": "cross-env VITE_MOBILE_SHELL=1 pnpm build",
+    "mobile:sync": "pnpm mobile:build && cap sync android",
+    "android:add": "cap add android",
+    "android:open": "cap open android",
     "rebuild:sqlite:electron": "cross-env npm_config_runtime=electron npm_config_target=34.0.2 npm_config_disturl=https://electronjs.org/headers pnpm rebuild better-sqlite3 better-sqlite3-multiple-ciphers",
     "rebuild:sqlite:node": "pnpm rebuild better-sqlite3 better-sqlite3-multiple-ciphers"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
     "better-sqlite3": "^12.11.1",
     "better-sqlite3-multiple-ciphers": "12.2.0",
     "sherpa-onnx-node": "1.13.3",
     "ws": "^8.21.1"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.2",
     "@fontsource/noto-serif-sc": "^5.2.8",
     "@phosphor-icons/react": "^2.1.10",
     "@testing-library/jest-dom": "^6.6.3",

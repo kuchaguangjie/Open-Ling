@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { defaultCounselors, getDefaultCounselors } from "@shared/index";
 import { preloadCounselorSessionAssets } from "../../../components/counselor/counselorPortraitAssets";
-import { isDevBrowserPreview } from "../../../devBrowserPreview";
+import { isShellPreview } from "../../../devBrowserPreview";
 import { preloadCounselorFlowAssets } from "../../../flows/consultation/counselorFlowAssets";
 import {
   hasConfirmedCurrentInformedConsent,
@@ -283,7 +283,7 @@ export function useLobbyController({
 
   const continueBookingPreparation = (counselorId: string) => {
     if (
-      !isDevBrowserPreview() &&
+      !isShellPreview() &&
       (!api.apiBaseUrl.trim() || !api.modelName.trim() || (api.connectionKind !== "local" && !api.apiKeySaved))
     ) {
       setDialogueFlow(null);

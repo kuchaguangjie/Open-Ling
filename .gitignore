@@ -18,4 +18,26 @@ tmp/
 .playwright-cli/
 output/
 
+# 移动端（Capacitor）。原生工程本身入库：android/ 已生成，ios/ 待 `cap add ios`。
+#
+# 平台目录内部交给 Capacitor 模板生成的 .gitignore（android/.gitignore，以及
+# ios/ 生成后自带的 ios/.gitignore）：构建产物、Gradle 缓存、Pods、拷贝进工程的
+# web 产物、生成的配置文件都由它们负责，根目录不再重复一遍。
+# 这里只放模板不管的两类东西：
+#   1. 平台目录的本机配置兜底——模板已覆盖，重写一次是为了工程被重新生成时仍然生效；
+#   2. 两端的安装包与签名材料——AGENTS.md 不允许密钥入库，iOS 证书与描述文件同理。
+android/.gradle/
+android/local.properties
+android/.idea/
+
+*.apk
+*.aab
+*.ipa
+*.dSYM.zip
+*.xcarchive
+*.keystore
+*.jks
+*.p12
+*.mobileprovision
+
 # PLAN.md
