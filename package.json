@@ -11,6 +11,7 @@
   "author": "上海啸群教育科技有限公司",
   "license": "Apache-2.0",
   "description": "Ling 是一个开源 AI 心理咨询框架与桌面应用。",
+  "homepage": "https://ling.xiaoqunpsy.cn/",
   "main": "dist-electron/apps/desktop/src/main/index.js",
   "scripts": {
     "dev": "pnpm rebuild:sqlite:electron && tsc -p tsconfig.node.json && concurrently -k \"pnpm dev:web\" \"wait-on http://localhost:45174 && cross-env VITE_DEV_SERVER_URL=http://localhost:45174 electron .\"",
@@ -40,6 +41,7 @@
     "setup:ling-dev-auto-refresh": "node scripts/setup-ling-dev-auto-refresh.mjs",
     "dist:mac": "pnpm build && pnpm rebuild:sqlite:electron && electron-builder --mac dmg --config.npmRebuild=false",
     "dist:win": "pnpm build && electron-builder --win nsis",
+    "dist:linux": "pnpm build && electron-builder --linux deb AppImage",
     "mobile:build": "cross-env VITE_MOBILE_SHELL=1 pnpm build",
     "mobile:sync": "pnpm mobile:build && cap sync android",
     "android:add": "cap add android",
@@ -118,6 +120,15 @@
     "win": {
       "target": "nsis",
       "icon": "assets/app/ling-app-icon.ico"
+    },
+    "linux": {
+      "target": [
+        "deb",
+        "AppImage"
+      ],
+      "category": "Utility",
+      "icon": "assets/app/ling-app-icon-512.png",
+      "maintainer": "Ling-Team <openling@xiaoqunpsy.cn>"
     },
     "nsis": {
       "oneClick": false,

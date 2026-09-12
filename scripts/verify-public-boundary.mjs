@@ -47,7 +47,17 @@ const scanIgnoredDirectories = new Set([
 ]);
 
 const privateFileNames = new Set([".env"]);
-const approvedPublicEmailAddresses = new Set(["openling@xiaoqunpsy.cn"]);
+// 允许出现在公开内容里的邮箱。分两类：
+//   1. 本项目自己的联系邮箱；
+//   2. 会被动进入生成文件的**上游 registry 元数据** —— pnpm-lock.yaml 会原样记录 npm 的
+//      deprecated 提示文本，而这类文本里常带包作者的邮箱。它不是本项目成员的联系方式，
+//      也不构成隐私泄漏，因此单独放行，而不是为它放开整条检查。
+// 校验时会先把匹配到的地址转小写再比对，所以这里必须全小写。
+const approvedPublicEmailAddresses = new Set([
+  "openling@xiaoqunpsy.cn", // 项目联系邮箱
+  "kuchaguangjie@gmail.com", // fork 维护者本人
+  "i@izs.me" // glob 旧版本 deprecated 提示的作者邮箱（pnpm-lock.yaml）
+]);
 const privateFileExtensions = new Set([
   ".db",
   ".key",

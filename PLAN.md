@@ -2,8 +2,9 @@
 
 ## plan - human
 - 可能的 开发计划
+    * github/workflow 打包生成 安装包               sub ..
     * 用 Capacitor , 生成 android client
-        * test apk              sub ..
+        * test apk              sub 2 ..
     * 升级到 vite 8
     * resource 太大, 几百Mb, 能否减小?
     * 多 agent:	1个主的, 多个子的; 偶尔让子的聚合下;
