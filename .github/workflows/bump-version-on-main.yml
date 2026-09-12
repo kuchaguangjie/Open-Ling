@@ -19,15 +19,19 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main
+      # pnpm 必须在 setup-node 之前：cache: pnpm 要求 pnpm 已在 PATH 上。
+      # 版本由 package.json 的 packageManager 字段决定，不在这里写死。
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: npm
-      - run: npm version patch --no-git-tag-version
+          node-version: 24
+          cache: pnpm
+      # 复用 package.json 里的 version:patch，避免这里的命令和本地脚本漂移。
+      - run: pnpm version:patch
       - name: Commit updated version
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json package-lock.json
+          git add package.json pnpm-lock.yaml
           git commit -m "chore: bump version"
           git push origin HEAD:main

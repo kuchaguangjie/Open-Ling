@@ -12,14 +12,18 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+      # pnpm 必须在 setup-node 之前：cache: pnpm 要求 pnpm 已在 PATH 上。
+      # 版本由 package.json 的 packageManager 字段决定，不在这里写死。
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm test -- --run
-      - run: npm run build
-      - run: npx electron-builder --win dir --publish never
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # 注意：pnpm 会把 `--` 原样转发给脚本（与 npm 不同），所以这里不能写 `-- --run`。
+      - run: pnpm test --run
+      - run: pnpm build
+      - run: pnpm exec electron-builder --win dir --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
       - name: Verify packaged resources and launch

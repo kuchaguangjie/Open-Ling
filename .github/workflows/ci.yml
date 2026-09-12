@@ -20,13 +20,18 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      # pnpm 必须在 setup-node 之前：cache: pnpm 要求 pnpm 已在 PATH 上，
+      # setup-node 需要调用 `pnpm store path` 才能算出缓存目录。
+      # 版本不在 action 里写死，由 package.json 的 packageManager 字段决定。
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run public-boundary:verify
-      - run: npm run licenses:verify
-      - run: npm run typecheck
-      - run: npm test -- --run
-      - run: npm run build
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm public-boundary:verify
+      - run: pnpm licenses:verify
+      - run: pnpm typecheck
+      # 注意：pnpm 会把 `--` 原样转发给脚本（与 npm 不同），所以这里不能写 `-- --run`。
+      - run: pnpm test --run
+      - run: pnpm build
