@@ -77,15 +77,8 @@ jobs:
             files: |
               release/*.exe
               release/*.exe.blockmap
-          # ubuntu-24.04-arm 是 ARM64；ubuntu-latest / ubuntu-24.04 是 x64。
-          - name: Linux ARM64
-            os: ubuntu-24.04-arm
-            platform: linux
-            arch: arm64
-            linux_targets: deb
-            artifact: ling-linux-arm64
-            files: |
-              release/*.deb
+          # ubuntu-latest / ubuntu-24.04 都是 x64。ARM64 的 runner 标签是 ubuntu-24.04-arm，
+          # 这里刻意不用 —— 只出 x64 的 Linux 包。
           - name: Linux x64
             os: ubuntu-24.04
             platform: linux
